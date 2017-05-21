@@ -1,0 +1,48 @@
+#!/usr/bin/env python2.7
+
+import os
+
+from optparse import OptionParser
+from blacknet.scrubber import BlacknetScrubber
+
+
+def scrubber_options_parse():
+    parser = OptionParser()
+    parser.add_option("-c", "--check", dest="check_level", action="store_const", const=1,
+                      help="perform a fast data coherency check", default=0)
+    parser.add_option("-C", "--full-check", dest="check_level", action="store_const", const=2,
+                      help="perform an extensive data coherency check", default=0)
+    parser.add_option("-f", "--fix", dest="fixing", action="store_true",
+                      help="apply database fixes during checks", default=False)
+    parser.add_option("-g", "--generate", dest="generate", action="store_true",
+                      help="generate cached data for blacknet website", default=False)
+    parser.add_option("-q", "--quiet", dest="verbose", default=True,
+                      help="only display errors", action="store_false")
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    (options, arg) = scrubber_options_parse()
+
+    bns = BlacknetScrubber()
+    bns.verbosity = 2 if options.verbose else 1
+    bns.do_fix = options.fixing
+
+    if options.check_level > 0:
+        bns.check_attackers()
+        for t in ['attacker', 'session']:
+            bns.check_attempts_count(t)
+
+    if options.check_level > 1:
+        for t in ['attacker', 'session']:
+            bns.check_attempts_dates(t)
+        bns.check_geolocations()
+
+    if options.fixing:
+        bns.database_optimize()
+
+    if options.generate:
+        bns.generate_targets()
+        bns.generate_stats()
+        bns.generate_minimaps()
+        bns.generate_map_data()

@@ -1,0 +1,70 @@
+#!/usr/bin/env python2.7
+
+import os
+import signal
+import time
+
+from signal import signal, getsignal, SIGINT, SIGTERM, SIGHUP
+from optparse import OptionParser
+from blacknet.ssh_server import BlacknetSSHServer
+
+running = True
+update = False
+
+
+# DEBUG
+# import paramiko
+# paramiko.util.log_to_file('/tmp/blacknet-client.log')
+
+
+def blacknet_quit(signal, frame):
+    """ exit this program in a clean way """
+    global running
+    running = False
+
+
+def blacknet_reload(signal, frame):
+    """ reload server configuration in a clean way """
+    global update
+    update = True
+
+
+def blacknet_write_pid(filename):
+    with open(filename, 'w') as fpid:
+        fpid.write("%d" % os.getpid())
+        fpid.close()
+
+
+if __name__ == '__main__':
+    parser = OptionParser()
+    parser.add_option("-p", "--pidfile", dest="pidfile",
+                      help="file to write pid to at startup", metavar="FILE")
+    parser.add_option("-c", "--config", dest="config",
+                      help="configuration file to use", metavar="FILE")
+
+    (options, arg) = parser.parse_args()
+
+    # save current signal handlers
+    sigint_handler = getsignal(SIGINT)
+    sigterm_handler = getsignal(SIGINT)
+
+    # install our current signal handlers
+    signal(SIGINT, blacknet_quit)
+    signal(SIGTERM, blacknet_quit)
+    signal(SIGHUP, blacknet_reload)
+
+    if options.pidfile:
+        blacknet_write_pid(options.pidfile)
+
+    bns = BlacknetSSHServer(options.config)
+    while running:
+        if update:
+            bns.reload()
+            update = False
+        bns.serve()
+
+    # restore signal handlers
+    signal(SIGINT, sigint_handler)
+    signal(SIGTERM, sigterm_handler)
+
+    bns.shutdown()

@@ -1,0 +1,79 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;    BlackNet Project, see doc/LICENSE    ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Configuration file for BlackNet Honeypot System.
+
+[mysql]
+; Unix sockets are faster than just connecting throught the IP protocol.
+; Provide "localhost" here to connect using standard UNIX socket.
+host = localhost
+username = blacknet
+database = blacknet
+password =
+
+
+[server]
+; Listening interfaces for blacknet server (coma separated)
+; You can add unix sockets by specifying a path
+; When using unix sockets only, SSL is disabled.
+listen = 0.0.0.0:10443,/var/run/blacknet-main.socket
+; Set permissions for unix socket (if any) and ensure permissions are set
+; in order to allow connections from clients.
+;listen_owner = blacknet
+;listen_group = blacknet
+;listen_mode = 0660
+
+; The following fields are automatically disabled when server only uses unix sockets.
+; Server key and certificate (all in one file)
+cert = /etc/blacknet/maestro.pem
+; Certificate authority (used for both clients and servers)
+cafile = /etc/blacknet/ca.crt
+
+; Blacknet server log file
+log_file = /var/log/blacknet-main.log
+
+; Extra location for the blacklist file
+; Blacklist files are checked at /etc/blacknet/blacklist.cfg and ${HOME}/.blacknet/blacklist.cfg
+;blacklist_file = /path/to/blacknet/blacklist.cfg
+
+; Minimal duration to consider 2 attempts as being from different sessions.
+session_interval = 3600
+
+
+[honeypot]
+; SSH server listening interface(s)
+listen = 0.0.0.0:2200
+; SSH server key(s) for client (paramiko)
+ssh_keys = /etc/blacknet/ssh_key
+; SSH banner for honeypot
+ssh_banner = SSH-2.0-OpenSSH_6.7p1 Debian-5+deb8u3
+
+; MainServer to connect to (address:port or unix socket path)
+server = /var/run/blacknet-main.socket
+
+; Server certificate hostname for additional security (comment to disable)
+;server_hostname = maestro
+; Client name override (default is to use commonName from cert)
+;name = honeypot00
+; Client private key and certificate (all in one file)
+cert = /etc/blacknet/honeypot00.pem
+; Certificate authority (used for both clients and servers)
+cafile = /etc/blacknet/ca.crt
+; Blacknet client log file
+log_file = /var/log/blacknet-honeypot00.log
+
+
+[monitor]
+; Directory in which cache data for the monitor shoud be written.
+cache_path = /var/www/monitor/cache/
+; double sha1 for administrator access (default is "test").
+dbl_hash_admin = c4033bff94b567a190e33faa551f411caef444f2
+; Number of entries retrieved each time (reduce to improve performances).
+limit = 7
+; A target is considered recent if there's any activity within X days.
+; Non recent targets will be ignored in the statistics pages.
+; This is also the period on which computational statistics are restrained.
+recent_delta = 200
+; A target is considered alive if there's any activity withon X days.
+; Used to skip some stats and minimap generation in cache_generator.
+alive_delta = 2

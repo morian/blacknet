@@ -1,0 +1,9 @@
+CHANGELOG
+=========
+
+2.0:
+	- Complete rewrite of all blacknet
+	- Minor database structure update (to accept public keys)
+	- Now handles SSH public keys recording
+	- Integrate SSH Server, Main Server and Website in the same repository
+
