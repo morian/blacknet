@@ -2,7 +2,7 @@
 setup.py for Blacknet.
 
 
-This file is part of Blacknet - a SSH honeypot logger and aggregator
+This file is part of Blacknet - a SSH Distributed Honeypot Solution
 Released under the MIT License.
 """
 

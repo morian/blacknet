@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-2.0:
+2.0.0:
 	- Complete rewrite of all blacknet
 	- Minor database structure update (to accept public keys)
 	- Now handles SSH public keys recording
