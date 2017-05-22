@@ -1,6 +1,6 @@
-##########################
-## BlackNet Project 2.0 ##
-##########################
+############################
+## BlackNet Project 2.0.1 ##
+############################
 
 BlackNet includes a low interaction SSH honeypot and a master server used to
 gather all attempts and draw statistics and maps out of it while displaying
@@ -28,6 +28,9 @@ The SSH Server (blacknet-ssh-server) is just a honeypot instance communicating
 with the main server.
 Please consult --help from both commands and read blacknet.cfg.example carefully.
 
+You need to generate SSL certificates in order to make blacknet work
+correctly over network stacks. Please use easy-rsa or equivalent to generate
+your own PKI and deliver certificates between your server and your honeypots.
 
 	* Requirements
 		- Python 2.7 (not tested yet in 3.x)
@@ -41,7 +44,6 @@ Please consult --help from both commands and read blacknet.cfg.example carefully
 		- Take a copy of blacknet.cfg.example and make your own configuration in
 		  /etc/blacknet/blacknet.cfg or ${HOME}/.blacknet/blacknet.cfg
 		- Execute blacknet-install.sql in your database to create the database structures
-		- Edit your apache configuration to point to the www directory.
 
 		- You can update (and fill) the database with geolocation updates using
 		  the command "blacknet-geo-updater".

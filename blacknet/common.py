@@ -11,7 +11,7 @@ class BlacknetMsgType:
     SSH_PUBLICKEY  = 3
 
 # General directories to look for configuration files.
-BLACKNET_CONFIG_DIRS = ["/etc", "/etc/blacknet", os.path.expanduser("~/.blacknet")]
+BLACKNET_CONFIG_DIRS = ["/etc/blacknet", os.path.expanduser("~/.blacknet")]
 # General directories to look for blacklist files.
 BLACKNET_BLACKLIST_DIRS = ["/etc/blacknet", os.path.expanduser("~/.blacknet")]
 

@@ -21,6 +21,7 @@ setuptools.setup(
     url          = blacknet.version.url,
     packages     = ["blacknet"],
     platforms    = ["any"],
+    install_requires = ["msgpack-python", "MySQL-python", "paramiko"],
     scripts      = ["bin/blacknet-main-server", "bin/blacknet-ssh-server",
                     "bin/blacknet-geo-updater", "bin/blacknet-db-scrubber"],
     long_description =

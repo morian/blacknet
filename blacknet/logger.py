@@ -35,9 +35,10 @@ class BlacknetLogger(BlacknetConfigurationInterface):
 
 
     def close(self):
-        self.__handle.close()
-        self.__handle = None;
-        self.__logpath = None;
+        if self.__handle:
+            self.__handle.close()
+            self.__handle = None
+            self.__logpath = None
 
 
     def reload(self):

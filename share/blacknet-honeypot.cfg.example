@@ -1,0 +1,26 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;    BlackNet Project, see doc/LICENSE    ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Configuration file for BlackNet honeypot.
+
+[honeypot]
+; SSH server listening interface(s)
+listen = 0.0.0.0:2200
+; SSH server key(s) for client (paramiko)
+ssh_keys = /etc/blacknet/ssh/honeypot00
+; SSH banner for honeypot
+ssh_banner = SSH-2.0-OpenSSH_6.7p1 Debian-5+deb8u3
+
+; MainServer to connect to (address:port or unix socket path)
+server = /var/run/blacknet/main.socket
+
+; Server certificate hostname for additional security (comment to disable)
+;server_hostname = maestro
+; Client name override (default is to use commonName from cert)
+;name = honeypot00
+; Client private key and certificate (all in one file)
+cert = /etc/blacknet/ssl/honeypot00.pem
+; Certificate authority (used for both clients and servers)
+cafile = /etc/blacknet/ssl/ca.crt
+; Blacknet client log file
+log_file = /var/log/blacknet/honeypot00.log

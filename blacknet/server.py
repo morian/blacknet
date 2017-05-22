@@ -25,6 +25,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
 
         self._interfaces = {}
         self._threads = []
+        self._logger = None
 
         config = BlacknetConfig()
         config.load(cfg_file)

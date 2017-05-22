@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;    BlackNet Project, see doc/LICENSE    ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Configuration file for BlackNet Honeypot System.
+;; Configuration file for BlackNet main server.
 
 [mysql]
 ; Unix sockets are faster than just connecting throught the IP protocol.
@@ -16,7 +16,7 @@ password =
 ; Listening interfaces for blacknet server (coma separated)
 ; You can add unix sockets by specifying a path
 ; When using unix sockets only, SSL is disabled.
-listen = 0.0.0.0:10443,/var/run/blacknet-main.socket
+listen = 0.0.0.0:10443,/var/run/blacknet/main.socket
 ; Set permissions for unix socket (if any) and ensure permissions are set
 ; in order to allow connections from clients.
 ;listen_owner = blacknet
@@ -25,12 +25,12 @@ listen = 0.0.0.0:10443,/var/run/blacknet-main.socket
 
 ; The following fields are automatically disabled when server only uses unix sockets.
 ; Server key and certificate (all in one file)
-cert = /etc/blacknet/maestro.pem
+cert = /etc/blacknet/ssl/maestro.pem
 ; Certificate authority (used for both clients and servers)
-cafile = /etc/blacknet/ca.crt
+cafile = /etc/blacknet/ssl/ca.crt
 
 ; Blacknet server log file
-log_file = /var/log/blacknet-main.log
+log_file = /var/log/blacknet/blacknet.log
 
 ; Extra location for the blacklist file
 ; Blacklist files are checked at /etc/blacknet/blacklist.cfg and ${HOME}/.blacknet/blacklist.cfg
@@ -40,32 +40,9 @@ log_file = /var/log/blacknet-main.log
 session_interval = 3600
 
 
-[honeypot]
-; SSH server listening interface(s)
-listen = 0.0.0.0:2200
-; SSH server key(s) for client (paramiko)
-ssh_keys = /etc/blacknet/ssh_key
-; SSH banner for honeypot
-ssh_banner = SSH-2.0-OpenSSH_6.7p1 Debian-5+deb8u3
-
-; MainServer to connect to (address:port or unix socket path)
-server = /var/run/blacknet-main.socket
-
-; Server certificate hostname for additional security (comment to disable)
-;server_hostname = maestro
-; Client name override (default is to use commonName from cert)
-;name = honeypot00
-; Client private key and certificate (all in one file)
-cert = /etc/blacknet/honeypot00.pem
-; Certificate authority (used for both clients and servers)
-cafile = /etc/blacknet/ca.crt
-; Blacknet client log file
-log_file = /var/log/blacknet-honeypot00.log
-
-
 [monitor]
 ; Directory in which cache data for the monitor shoud be written.
-cache_path = /var/www/monitor/cache/
+cache_path = /var/www/blacknet/cache/
 ; double sha1 for administrator access (default is "test").
 dbl_hash_admin = c4033bff94b567a190e33faa551f411caef444f2
 ; Number of entries retrieved each time (reduce to improve performances).

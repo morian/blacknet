@@ -1,5 +1,6 @@
 include LICENSE.txt
 include CHANGELOG.txt
 include share/blacknet.cfg.example
+include share/blacknet-honeypot.cfg.example
 include share/blacklist.cfg.example
 include share/blacknet-install.sql
