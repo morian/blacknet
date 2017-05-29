@@ -59,7 +59,6 @@ honeypots.
 * Take a copy of blacknet.cfg.example and make your own configuration in
   /etc/blacknet/blacknet.cfg or ${HOME}/.blacknet/blacknet.cfg
 * Execute blacknet-install.sql in your database to create the database structures
-
 * You can update (and fill) the database with geolocation updates using
   the command "blacknet-geo-updater".
 * You can also scrub your data to generate reports or perform metadata checks
@@ -70,19 +69,11 @@ honeypots.
   directory.
 
 
-Web Server
-----------
-
-Current web server version is outdated
-(running on BlackNet 1.0 configuration files).
-You should not try to use it for now until it get fixed in a future release.
-
-
 License
 -------
 
 This tool is provided under the MIT license
-Please see [LICENSE.txt](LICENSE.txt)
+Please see [LICENSE.md](LICENSE.md)
 
 
 Credits
