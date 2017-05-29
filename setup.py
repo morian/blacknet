@@ -1,32 +1,37 @@
-"""
-setup.py for Blacknet.
+#!/usr/bin/env python
 
+from setuptools import setup, find_packages
 
-This file is part of Blacknet - a SSH Distributed Honeypot Solution
-Released under the MIT License.
-"""
+version_tuple = __import__('blacknet').VERSION
 
-import blacknet
-import setuptools
-from distutils.command.install import INSTALL_SCHEMES
+if version_tuple[3] is not None:
+    version = "%d.%d.%d_%s" % version_tuple
+else:
+    version = "%d.%d.%d" % version_tuple[:3]
 
+with open('./README.txt') as f:
+    readme = f.read()
 
-setuptools.setup(
-    name         = blacknet.version.name,
-    version      = blacknet.version.version,
-    description  = blacknet.version.description,
-    license      = blacknet.version.license,
-    author       = blacknet.version.author,
-    author_email = blacknet.version.author_email,
-    url          = blacknet.version.url,
-    packages     = ["blacknet"],
-    platforms    = ["any"],
-    install_requires = ["msgpack-python", "MySQL-python", "paramiko"],
-    scripts      = ["bin/blacknet-main-server", "bin/blacknet-ssh-server",
-                    "bin/blacknet-geo-updater", "bin/blacknet-db-scrubber"],
-    long_description =
-"""
-Blacknet is a SSH Honeypot server for logging and aggregating login attempts.
-Multiple honeypot clients can connect securely to report their data.
-""",
+setup(
+    name             = 'BlackNet',
+    version          = version,
+    url              = 'http://github.com/morian/blacknet/',
+    author           = 'Romain Bezut',
+    author_email     = 'blacknet@xdec.net',
+    description      = 'Multi-head SSH honeypot system',
+    license          = 'MIT',
+    long_description = readme,
+    packages         = find_packages(),
+    scripts          = ['bin/blacknet-main-server', 'bin/blacknet-ssh-server',
+                        'bin/blacknet-geo-updater', 'bin/blacknet-db-scrubber'],
+    install_requires = ['configparser', 'msgpack-python', 'PyMySQL', 'paramiko'],
+    classifiers      =  [
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: Implementation :: CPython",
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+    ],
 )

@@ -6,8 +6,8 @@ import tempfile
 import urllib
 import zipfile
 
-from config import BlacknetConfig
-from database import BlacknetDatabase
+from .config import BlacknetConfig
+from .database import BlacknetDatabase
 
 GEOLITE_CSV_URL="https://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip"
 

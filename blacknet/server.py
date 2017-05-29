@@ -7,9 +7,17 @@ import socket
 
 from threading import Thread
 
-from config import BlacknetConfig, BlacknetConfigurationInterface
-from logger import BlacknetLogger
-from common import *
+from .config import BlacknetConfig, BlacknetConfigurationInterface
+from .logger import BlacknetLogger
+from .common import *
+
+
+# Backward compatibility
+try:
+    InterruptedError = InterruptedError
+except:
+    InterruptedError = OSError
+
 
 
 class BlacknetServer(BlacknetConfigurationInterface):
@@ -36,10 +44,6 @@ class BlacknetServer(BlacknetConfigurationInterface):
         self.log("== %s is starting" % self.__class__.__name__)
 
         self._listen_start_stop()
-
-
-    def __del__(self):
-        self.log("== %s stopped" % self.__class__.__name__)
 
 
     @property
@@ -139,6 +143,27 @@ class BlacknetServer(BlacknetConfigurationInterface):
             self._listen_start(itf)
 
 
+    def _listen_start(self, interface):
+        unix_socket = type(interface) is not tuple
+        name = interface if unix_socket else "%s:%u" % interface
+
+        if unix_socket:
+            if os.path.exists(interface):
+                os.remove(interface)
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind(interface)
+            self._permissions_apply(interface)
+        else:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind(interface)
+        sock.listen(5)
+
+        self._interfaces[interface] = sock
+        self.log("Starting interface %s" % name)
+
+
     def _listen_stop(self, interface):
         sock = self._interfaces.pop(interface, None)
         if sock:
@@ -168,27 +193,6 @@ class BlacknetServer(BlacknetConfigurationInterface):
             os.chmod(filepath, mode)
 
 
-    def _listen_start(self, interface):
-        unix_socket = type(interface) is str
-        name = interface if unix_socket else "%s:%u" % interface
-
-        if unix_socket:
-            if os.path.exists(interface):
-                os.remove(interface)
-            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind(interface)
-            self._permissions_apply(interface)
-        else:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind(interface)
-        sock.listen(5)
-
-        self._interfaces[interface] = sock
-        self.log("Starting interface %s" % name)
-
-
     def _threads_cleanup(self):
         for t in self._threads:
             if not t.is_alive():
@@ -216,6 +220,8 @@ class BlacknetServer(BlacknetConfigurationInterface):
                 t = threadclass(self, client)
                 self._threads.append(t)
                 t.start()
+        except InterruptedError:
+            pass
         except socket.error as e:
             if e.errno != errno.EINTR:
                 self.log("socket error: %s" % e)
@@ -233,4 +239,5 @@ class BlacknetServer(BlacknetConfigurationInterface):
         self.__listen_interfaces = []
         self._listen_start_stop()
         self._threads_killer()
+        self.log("== %s stopped" % self.__class__.__name__)
 

@@ -5,7 +5,9 @@
 
 [mysql]
 ; Unix sockets are faster than just connecting throught the IP protocol.
-; Provide "localhost" here to connect using standard UNIX socket.
+; Comment "socket" here to connect using standard TCP stack
+socket = /var/run/mysqld/mysqld.sock
+; "host" is ignored when "socket" is defined
 host = localhost
 username = blacknet
 database = blacknet

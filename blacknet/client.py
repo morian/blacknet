@@ -3,8 +3,9 @@ import socket
 import sys
 
 from threading import Lock
-from ssl_interface import BlacknetSSLInterface
-from common import *
+
+from .ssl_interface import BlacknetSSLInterface
+from .common import *
 
 
 class BlacknetClient(BlacknetSSLInterface):
@@ -21,7 +22,7 @@ class BlacknetClient(BlacknetSSLInterface):
         self.__client_name = None
         self.__connect_lock = Lock()
         self.__send_lock = Lock()
-        self.__packer = msgpack.Packer()
+        self.__packer = msgpack.Packer(encoding='utf-8')
 
 
     def __del__(self):
@@ -46,7 +47,7 @@ class BlacknetClient(BlacknetSSLInterface):
     @property
     def server_is_sockfile(self):
         if not self._server_sockfile:
-            self._server_sockfile = (type(self.server_address) is str)
+            self._server_sockfile = (type(self.server_address) is not tuple)
         return self._server_sockfile
 
 

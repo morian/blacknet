@@ -1,21 +1,20 @@
 import re
 import os
-import ConfigParser
 
-from common import *
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
+from .common import *
 
 
-
-class BlacknetConfigError(ConfigParser.Error):
-    pass
-
-
-class BlacknetConfig(ConfigParser.ConfigParser):
+class BlacknetConfig(configparser.ConfigParser):
     """ Blacknet configuration parser class """
 
 
     def __init__(self):
-        ConfigParser.ConfigParser.__init__(self)
+        configparser.ConfigParser.__init__(self)
         self.__confpath = None
 
 
@@ -40,7 +39,7 @@ class BlacknetConfig(ConfigParser.ConfigParser):
                     break
 
         if not found:
-            raise BlacknetConfigError("No configuration file found.")
+            raise Exception("No configuration file found.")
 
         self.read(cfg_file)
         self.__confpath = cfg_file
@@ -95,7 +94,7 @@ class BlacknetBlacklist(BlacknetConfigurationInterface):
             line = fd.readline()
             if re.match('^\[.+\]$', line):
                 section = line[1:len(line)-2]
-                if not self.__blacklist.has_key(section):
+                if section not in self.__blacklist:
                     self.__blacklist[section] = []
             elif section is not None:
                 res = re.match('^(.*)(?:[;#]|$)', line)
@@ -118,9 +117,9 @@ class BlacknetBlacklist(BlacknetConfigurationInterface):
 
     def has(self, sensor, username):
         resp = False
-        if self.__blacklist.has_key(sensor) and username in self.__blacklist[sensor]:
+        if sensor in self.__blacklist and username in self.__blacklist[sensor]:
             resp = True
-        if self.__blacklist.has_key('*') and username in self.__blacklist['*']:
+        if '*' in self.__blacklist and username in self.__blacklist['*']:
             resp = True
         return resp
 

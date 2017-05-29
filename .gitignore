@@ -1,4 +1,5 @@
 /*.pyc
-/blacknet.egg-info/
+/.tox/
+/BlackNet.egg-info/
 /build/
 /dist/

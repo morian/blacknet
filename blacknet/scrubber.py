@@ -4,9 +4,9 @@ import json
 import sys
 import urllib
 
-from config import BlacknetConfig, BlacknetConfigurationInterface
-from database import BlacknetDatabase
-from common import *
+from .config import BlacknetConfig, BlacknetConfigurationInterface
+from .database import BlacknetDatabase
+from .common import *
 
 
 WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']

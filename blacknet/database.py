@@ -1,14 +1,11 @@
-import MySQLdb
+import pymysql
 import warnings
 
 from threading import Lock
-from config import BlacknetConfigurationInterface
+from .config import BlacknetConfigurationInterface
 
-
-# Please shut the fuck up and stay out of my stderr.
-warnings.filterwarnings('ignore', category=MySQLdb.Warning)
-
-
+# Forces MySQL to shut up about binlog format
+warnings.filterwarnings('ignore', category=pymysql.Warning)
 
 class BlacknetDatabaseCursor(object):
     """ Database cursor wrapper for Mysqldb interactions. """
@@ -221,11 +218,16 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
 
 
     def _get_connection_parameters(self):
-        host = self.get_config('host')
+        if self.has_config('socket'):
+            socket = self.get_config('socket')
+            host = None
+        else:
+            host = self.get_config('host')
+            socket = None
         user = self.get_config('username')
         password = self.get_config('password')
         database = self.get_config('database')
-        return (host, user, password, database)
+        return (socket, host, user, password, database)
 
 
     @property
@@ -257,13 +259,22 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
     def connect(self, params=None):
         if not params:
             params = self.connection_parameters
-        host, user, passwd, database = params
+        (socket, host, user, passwd, database) = params
 
         self.__connection_lock.acquire()
         try:
             if not self.__database:
-                self.__database = MySQLdb.connect(host, user, passwd, database)
-                self.log("MySQL: database connection successful")
+                kwargs = {
+                    'host': host,
+                    'user': user,
+                    'password': passwd,
+                    'db': database,
+                    'unix_socket': socket
+                }
+                self.__database = pymysql.connect(**kwargs)
+                self.log("pymysql: database connection successful")
+        except Exception as e:
+            print(e)
         finally:
             self.__connection_lock.release()
 

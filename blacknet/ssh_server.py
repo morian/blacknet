@@ -11,9 +11,9 @@ from paramiko import RSAKey, ECDSAKey
 from paramiko.ssh_exception import SSHException
 from paramiko.common import AUTH_FAILED
 
-from client import BlacknetClient
-from server import BlacknetServer
-from common import *
+from .client import BlacknetClient
+from .server import BlacknetServer
+from .common import *
 
 
 

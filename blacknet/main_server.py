@@ -1,17 +1,17 @@
 import errno
-import MySQLdb
 import os
 import select
 import socket
 
+from pymysql import MySQLError
 from msgpack import Unpacker
 from threading import Lock, Thread
 
-from config import BlacknetBlacklist
-from ssl_interface import BlacknetSSLInterface
-from database import BlacknetDatabase
-from server import BlacknetServer
-from common import *
+from .config import BlacknetBlacklist
+from .ssl_interface import BlacknetSSLInterface
+from .database import BlacknetDatabase
+from .server import BlacknetServer
+from .common import *
 
 
 class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
@@ -80,7 +80,7 @@ class BlacknetServerThread(Thread):
         self.__logger = bns.logger
         self.__mysql_error = 0
         self.__session_interval = bns.session_interval
-        self.__unpacker = Unpacker()
+        self.__unpacker = Unpacker(encoding='utf-8')
         self.__dropped_count = 0
         self.__attempt_count = 0
         self.__atk_cache = {}
@@ -123,7 +123,7 @@ class BlacknetServerThread(Thread):
         name = "unknown"
         if self.__use_ssl:
             cert = self.__client.getpeercert()
-            if cert.has_key('subject'):
+            if 'subject' in cert:
                 for item in cert['subject']:
                     if item[0][0] == "commonName":
                         name = item[0][1]
@@ -145,7 +145,7 @@ class BlacknetServerThread(Thread):
             self.__unpacker.feed(buf)
 
             for (msgtype, data) in self.__unpacker:
-                if self.handler.has_key(msgtype):
+                if msgtype in self.handler:
                     self.handler[msgtype](data)
                 else:
                     self.handle_unknown(msgtype, data)
@@ -172,7 +172,7 @@ class BlacknetServerThread(Thread):
         for retry in range(BLACKNET_DATABASE_RETRIES):
             try:
                 return function(*args)
-            except MySQLdb.MySQLError as e:
+            except MySQLError as e:
                 if self.__mysql_error != e.args[0]:
                     self.__mysql_error = e.args[0]
                     self.log("MySQL[%u]: %s" % e.args)
@@ -188,7 +188,7 @@ class BlacknetServerThread(Thread):
 
     def handle_hello(self, data):
         if data != BLACKNET_HELLO:
-            self.log("client reported buggy hello")
+            self.log("client reported buggy hello (got %s, expected %s)" % (data, BLACKNET_HELLO))
 
     def handle_client_name(self, data):
         if data != self.name:
@@ -203,7 +203,7 @@ class BlacknetServerThread(Thread):
         time = data['time']
         atk_id = blacknet_ip_to_int(ip)
 
-        if not self.__atk_cache.has_key(atk_id):
+        if atk_id not in self.__atk_cache:
             res = cursor.check_attacker(atk_id)
             if res is None:
                 locid = cursor.get_locid(atk_id)
@@ -238,7 +238,7 @@ class BlacknetServerThread(Thread):
         sensor = self.name
         time = data['time']
 
-        if not self.__ses_cache.has_key(atk_id):
+        if atk_id not in self.__ses_cache:
             res = cursor.check_session(atk_id, sensor)
             if res is None:
                 (ses_id, last_seen) = (0, 0)
@@ -260,7 +260,7 @@ class BlacknetServerThread(Thread):
     def __add_ssh_attempt(self, data, atk_id, ses_id):
         cursor = self.cursor
         # This happen while registering a pubkey authentication
-        password = data['passwd'] if data.has_key('passwd') else None
+        password = data['passwd'] if 'passwd' in data else None
         args = (atk_id, ses_id, data['user'], password, self.name, data['time'], data['version'])
         att_id = cursor.insert_attempt(args)
         return att_id
@@ -270,7 +270,7 @@ class BlacknetServerThread(Thread):
         cursor = self.cursor
         fingerprint = data['kfp']
 
-        if not self.__key_cache.has_key(fingerprint):
+        if fingerprint not in self.__key_cache:
             res = cursor.check_pubkey(fingerprint)
             if res is None:
                 args = (data['ktype'], data['kfp'], data['k64'], data['ksize'])

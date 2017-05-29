@@ -1,6 +1,6 @@
-import datetime
+from datetime import datetime
 
-from config import BlacknetConfigurationInterface
+from .config import BlacknetConfigurationInterface
 from threading import Lock
 
 
@@ -52,7 +52,7 @@ class BlacknetLogger(BlacknetConfigurationInterface):
 
 
     def write(self, message):
-        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.__write_lock.acquire()
         self.__handle.write("%s %s\n" % (date, message))
         self.__handle.flush()

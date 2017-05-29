@@ -1,89 +1,102 @@
-############################
-## BlackNet Project 2.0.1 ##
-############################
+BlackNet 2
+==========
 
-BlackNet includes a low interaction SSH honeypot and a master server used to
-gather all attempts and draw statistics and maps out of it while displaying
-attacks live on a website.
+BlackNet is a low interaction SSH multi-head honeypot system with logging
+capabilities.
 
-  The initial project features a modified VirtualBox environment as a high
+You can use it to gather all SSH attempts performed on multiple IPv4 address
+you own on the internet and draw and export statistics out of it.
+A dedicated web interface allows live tracking of what happens on your
+honeypots, which IP addresses are targeting you and from where.
+
+
+History
+-------
+
+The initial project featured a modified VirtualBox environment as a high
 interaction honeypot, gathering commands and events such as password changes.
-We then moved to supporting Kippo, a medium interaction SSH honeypot in Python.
-Now we simply use a lightweight paramiko server as a low interaction honeypot
-since there are no more plans and no more times to register commands and
-events automatically.
-Still, the underlying MySQL tables and some website features still pretend
-this time is not over. It should not be that difficult to use blacknet-client
-with Kippo or Cowrie.
+We then moved to supporting Kippo, a medium interaction SSH honeypot written
+in Python. Today's  version uses a lightweight paramiko server as a
+low-interaction honeypot since there are no more plans (and no more time) to
+handle commands and events automatically
+(there are many security concerns around doing high interaction automatically).
+The underlying MySQL schemes still refers to commands or events but they are
+mostly kept for backward compatibility reasons.
+Integration with [Cowrie](http://github.com/micheloosterhof/cowrie/) should not
+be hard to extend BlackNet features and make it highly interactive again.
 
-	This project was initially conducted during our studies in 2010 and was
-rewritten in 2017 to necessitate lower maintenance and installation efforts.
+This project was initially conducted during our engineering studies in 2010.
+It was rewritten in 2017 to lower maintenance and installation efforts and to
+fit with modern python programming standards.
 
 
-INSTALLATION:
+Requirements
+------------
+
+* Python 2.7 or 3.4 (only tested on these versions)
+* MsgPack for Python (used by both Servers)
+* PyMySQL (used by MainServer only)
+* Paramiko (used by honeypots to serve SSH requests)
+
+
+Installation
+------------
 
 Blacknet is provided in two main parts, a SSH Server and a Main Server.
 The Main Server (blacknet-main-server) is where the database is located.
 The SSH Server (blacknet-ssh-server) is just a honeypot instance communicating
 with the main server.
-Please consult --help from both commands and read blacknet.cfg.example carefully.
+Please read --help from both commands and read blacknet.cfg.example carefully.
 
 You need to generate SSL certificates in order to make blacknet work
-correctly over network stacks. Please use easy-rsa or equivalent to generate
-your own PKI and deliver certificates between your server and your honeypots.
+correctly over network stacks.
+Please use [easy-rsa](https://github.com/OpenVPN/easy-rsa) or equivalent to
+generate your own PKI and deliver certificates between your server and your
+honeypots.
 
-	* Requirements
-		- Python 2.7 (not tested yet in 3.x)
-		- MsgPack for Python (used by both Servers)
-		- MySQLdb for Python (for MainServer only)
-		- Paramiko (for SSH Server)
+* From source with "pip install ."
+* From pip repository "pip install blacknet"
+* Take a copy of blacknet.cfg.example and make your own configuration in
+  /etc/blacknet/blacknet.cfg or ${HOME}/.blacknet/blacknet.cfg
+* Execute blacknet-install.sql in your database to create the database structures
 
-	* Installation
-		- From source with "pip install ."
-		- From pip repository "pip install blacknet"
-		- Take a copy of blacknet.cfg.example and make your own configuration in
-		  /etc/blacknet/blacknet.cfg or ${HOME}/.blacknet/blacknet.cfg
-		- Execute blacknet-install.sql in your database to create the database structures
-
-		- You can update (and fill) the database with geolocation updates using
-		  the command "blacknet-geo-updater".
-		- You can also scrub your data to generate reports or perform metadata checks
-		  using "blacknet-db-scrubber" (please consult --help for details)
-		- Command "blacknet-db-scrubber" might be best run in a crontab (with --quiet)
-		- You might want to filter out some specific users for some or all
-		  honeypots. Please see blacklist.cfg.example and put it in an appropriate
-		  directory.
+* You can update (and fill) the database with geolocation updates using
+  the command "blacknet-geo-updater".
+* You can also scrub your data to generate reports or perform metadata checks
+  using "blacknet-db-scrubber" (please consult --help for details)
+* Command "blacknet-db-scrubber" might be best run in a crontab (with --quiet)
+* You might want to filter out some specific users for some or all
+  honeypots. Please see blacklist.cfg.example and put it in an appropriate
+  directory.
 
 
-LICENSE:
+Web Server
+----------
 
-	- This tool is provided under the MIT license
-	- If you like the legal stuff please enjoy reading LICENSE.txt
-
-
-RELEASE NOTES:
-
-  - See CHANGELOG.txt
+Current web server version is outdated
+(running on BlackNet 1.0 configuration files).
+You should not try to use it for now until it get fixed in a future release.
 
 
-CREDITS:
+License
+-------
 
-  - Romain Bezut (2010, 2017)
-  - Vivien Bernet-Rollande (2010)
-
-
-THANKS:
-
-	- We would like to thank the UTC (Université de Technologie de Compiègne).
-	  Our school brought us support and have made this project possible during
-	  class. Special thanks go to Mr. Schön who supervised this project.
-	- We would like to thank all our friends who helped finding issues and
-	  review this project in its early versions.
-	- The hackers and bots who contributed in spite of themselves to this project.
+This tool is provided under the MIT license
+Please see [LICENSE.txt](LICENSE.txt)
 
 
-CONTACTS:
+Credits
+-------
+* Romain Bezut (2010, 2017)
+* Vivien Bernet-Rollande (2010)
 
-	- github.com/morian
-	- twitter.com/morian42
-	- blacknet@xdec.net
+
+Thanks
+------
+
+* We would like to thank the UTC (Université de Technologie de Compiègne).
+  Our school brought us support and have made this project possible during
+  class. Special thanks go to our teacher who supervised this project.
+* We would like to thank all our friends who helped finding issues and
+  review this project in its early versions.
+* The hackers and bots who contributed in spite of themselves to this project.

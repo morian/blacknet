@@ -1,7 +1,7 @@
 import ssl
 
-from config import BlacknetConfigurationInterface
-from common import *
+from .config import BlacknetConfigurationInterface
+from .common import *
 
 
 class BlacknetSSLInterface(BlacknetConfigurationInterface):
