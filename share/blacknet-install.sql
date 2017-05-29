@@ -96,13 +96,13 @@ CREATE TABLE IF NOT EXISTS `attempts` (
 -- Table structure for table `pubkeys`
 --
 CREATE TABLE IF NOT EXISTS `pubkeys` (
-	`id` INT(10) UNSIGNED AUTO_INCREMENT,
-	`name` VARCHAR(16) NOT NULL,
-	`fingerprint` CHAR(32) NOT NULL,
-	`data` TEXT NOT NULL,
-	`bits` INT(5) UNSIGNED NOT NULL,
-	PRIMARY KEY (`id`),
-	UNIQUE (`fingerprint`)
+  `id` INT(10) UNSIGNED AUTO_INCREMENT,
+  `name` VARCHAR(16) NOT NULL,
+  `fingerprint` CHAR(32) NOT NULL,
+  `data` TEXT NOT NULL,
+  `bits` INT(5) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE (`fingerprint`)
 ) ENGINE=MyISAM DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 
@@ -111,9 +111,9 @@ CREATE TABLE IF NOT EXISTS `pubkeys` (
 -- Table structure for table `attempts_pubkeys`
 --
 CREATE TABLE IF NOT EXISTS `attempts_pubkeys` (
-	`attempt_id` INT(10) UNSIGNED NOT NULL,
-	`pubkey_id` INT(10) UNSIGNED NOT NULL,
-	PRIMARY KEY (`attempt_id`)
+  `attempt_id` INT(10) UNSIGNED NOT NULL,
+  `pubkey_id` INT(10) UNSIGNED NOT NULL,
+  PRIMARY KEY (`attempt_id`)
 ) ENGINE=MyISAM DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 
