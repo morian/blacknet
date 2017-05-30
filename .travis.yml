@@ -1,22 +1,24 @@
 dist: trusty
 language: python
 python:
-  - "3.6"
-  - "3.4"
   - "2.7"
+  - "3.4"
+  - "3.6"
 
 cache: pip
 
 addons:
-  mariadb: '10.2'
+  mariadb: '10.0'
 
 install:
   - pip install -U configparser msgpack-python PyMySQL paramiko
   - pip install -U coveralls coverage
 
 before_script:
-  - python -VV
-  - mysql -e 'select VERSION()'
+  - mysql -u root -e 'CREATE USER IF NOT EXISTS blacknet@localhost;'
+  - mysql -u root -e 'CREATE DATABASE blacknet_tests;'
+  - mysql -u root -e 'GRANT ALL ON blacknet_tests.* TO blacknet@localhost;'
+  - mysql -u root -U blacknet_tests < "${TRAVIS_BUILD_DIR}/share/blacknet-install.sql"
 
 script:
   - coverage run ./runtests.py
