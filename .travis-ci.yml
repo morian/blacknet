@@ -1,0 +1,25 @@
+dist: trusty
+language: python
+python:
+  - "3.6"
+  - "3.4"
+  - "2.7"
+
+cache: pip
+
+addons:
+  mariadb: '10.2'
+
+install:
+  - pip install -U configparser msgpack-python PyMySQL paramiko
+  - pip install -U coveralls coverage
+
+before_script:
+  - python -VV
+  - mysql -e 'select VERSION()'
+
+script:
+  - coverage run ./runtests.py
+
+after_success:
+  - coveralls

@@ -29,9 +29,6 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         self.__recent_threshold = None
 
 
-    def __del__(self):
-        pass
-
     def log_error(self, message):
         if self.__verbosity > 0:
             sys.stderr.write("%s\n" % message)

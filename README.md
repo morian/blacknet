@@ -65,7 +65,6 @@ correctly over network stacks (please see next section).
 
 Create your SSL certificates
 ----------------------------
-
 Please use [easy-rsa](https://github.com/OpenVPN/easy-rsa) or equivalent to
 generate your own PKI and deliver certificates between your server and your
 honeypots.
@@ -91,6 +90,12 @@ cd /tmp/easy-rsa/easyrsa3
 ./easyrsa sign client honeypot_00
 ```
 
+PEM file format used by BlackNet starts with the private key and then
+concatenates with the certificate (example bellow).
+
+```bash
+cat pki/private/maestro.key pki/issued/maestro.crt > maestro.pem
+```
 
 License
 -------

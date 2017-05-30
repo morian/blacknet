@@ -8,9 +8,11 @@ from blacknet.scrubber import BlacknetScrubber
 
 def scrubber_options_parse():
     parser = OptionParser()
-    parser.add_option("-c", "--check", dest="check_level", action="store_const", const=1,
+    parser.add_option("-c", "--config", dest="config",
+                      help="configuration file to use", metavar="FILE")
+    parser.add_option("-k", "--check", dest="check_level", action="store_const", const=1,
                       help="perform a fast data coherency check", default=0)
-    parser.add_option("-C", "--full-check", dest="check_level", action="store_const", const=2,
+    parser.add_option("-K", "--full-check", dest="check_level", action="store_const", const=2,
                       help="perform an extensive data coherency check", default=0)
     parser.add_option("-f", "--fix", dest="fixing", action="store_true",
                       help="apply database fixes during checks", default=False)
@@ -24,7 +26,7 @@ def scrubber_options_parse():
 if __name__ == '__main__':
     (options, arg) = scrubber_options_parse()
 
-    bns = BlacknetScrubber()
+    bns = BlacknetScrubber(options.config)
     bns.verbosity = 2 if options.verbose else 1
     bns.do_fix = options.fixing
 

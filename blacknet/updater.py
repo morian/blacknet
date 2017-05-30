@@ -6,13 +6,13 @@ import tempfile
 import urllib
 import zipfile
 
-from .config import BlacknetConfig
+from .config import BlacknetConfig, BlacknetConfigurationInterface
 from .database import BlacknetDatabase
 
 GEOLITE_CSV_URL="https://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip"
 
 
-class BlacknetGeoUpdater(object):
+class BlacknetGeoUpdater(BlacknetConfigurationInterface):
     """ Blacknet geolocation database updater """
 
 
@@ -20,38 +20,66 @@ class BlacknetGeoUpdater(object):
         """ load configuration file and database parameters """
         config = BlacknetConfig()
         config.load(cfg_file)
+        BlacknetConfigurationInterface.__init__(self, config, 'server')
+
         self.__database = BlacknetDatabase(config)
-        self.__dirname = tempfile.mkdtemp()
+        self.__test_mode = None
+        self.__dirname = None
         self.__config = config
         self.__filepath = {}
 
 
     def __del__(self):
-        shutil.rmtree(self.__dirname)
+        if not self.test_mode:
+            dirname = self.dirname
+        else:
+            # That's the ZipDir (extracted)
+            dirname = "%s/geolitecity" % self.dirname
+        shutil.rmtree(dirname)
         self.__dirname = None
 
+
+    @property
+    def test_mode(self):
+        if self.__test_mode is None:
+            if self.has_config('test_mode'):
+                self.__test_mode = bool(self.get_config('test_mode'))
+            else:
+                self.__test_mode = False
+        return self.__test_mode
+
+
+    @property
+    def dirname(self):
+        if self.__dirname is None:
+            if self.test_mode:
+                self.__dirname = 'tests/geo-updater/'
+            else:
+                self.__dirname = tempfile.mkdtemp()
+        return self.__dirname
 
     def log(self, message):
         sys.stdout.write("%s\n" % message)
 
 
     def fetch_zip(self):
-        zipf = open("%s/geolitecity.zip" % self.__dirname, 'wb')
-        res = urllib.urlopen(GEOLITE_CSV_URL)
+        if not self.test_mode:
+            zipf = open("%s/geolitecity.zip" % self.dirname, 'wb')
+            res = urllib.urlopen(GEOLITE_CSV_URL)
 
-        content = res.read()
-        zipf.write(content)
-        zipf.close()
+            content = res.read()
+            zipf.write(content)
+            zipf.close()
 
         self.log("[+] Fetched zipfile successfully")
 
 
     def extract_zip(self):
-        zip_dir = "%s/geolitecity/" % self.__dirname
+        zip_dir = "%s/geolitecity/" % self.dirname
         if not os.path.exists(zip_dir):
             os.mkdir(zip_dir)
 
-        zip_ref = zipfile.ZipFile("%s/geolitecity.zip" % self.__dirname, 'r')
+        zip_ref = zipfile.ZipFile("%s/geolitecity.zip" % self.dirname, 'r')
         for item in zip_ref.namelist():
             filepath = zip_ref.extract(item, zip_dir)
             filename = os.path.basename(filepath)
@@ -120,4 +148,5 @@ class BlacknetGeoUpdater(object):
         self.csv_to_database()
 
         self.log("[+] Update Complete")
-        self.log("[!] We *STRONGLY* suggest running \"blacknet-db-scrubber --full-check --fix\" to update gelocation positions.")
+        if not self.test_mode:
+            self.log("[!] We *STRONGLY* suggest running \"blacknet-db-scrubber --full-check --fix\" to update gelocation positions.")

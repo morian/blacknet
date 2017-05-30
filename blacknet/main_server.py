@@ -22,6 +22,7 @@ class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
         super(BlacknetMainServer, self).__init__('server', cfg_file)
         BlacknetSSLInterface.__init__(self, self.config, 'server')
 
+        self.__test_mode = None
         self.__session_interval = None
         self.database = BlacknetDatabase(self.config, self.logger)
         self.blacklist = BlacknetBlacklist(self.config)
@@ -42,10 +43,21 @@ class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
         return self.__session_interval
 
 
+    @property
+    def test_mode(self):
+        if self.__test_mode is None:
+            if self.has_config('test_mode'):
+                self.__test_mode = bool(self.get_config('test_mode'))
+            else:
+                self.__test_mode = False
+        return self.__test_mode
+
+
     def reload(self):
         """ reload server configuration """
 
         super(BlacknetMainServer, self).reload()
+        self.__test_mode = None
         self.__session_interval = None
         self.database.reload()
         self.blacklist.reload()
@@ -86,6 +98,7 @@ class BlacknetServerThread(Thread):
         self.__atk_cache = {}
         self.__ses_cache = {}
         self.__key_cache = {}
+        self.__test_mode = bns.test_mode
 
         peer = client.getpeername()
         self.__peer_ip = peer[0] if peer else "local"
@@ -293,6 +306,9 @@ class BlacknetServerThread(Thread):
             raise Exception(msg)
 
     def __handle_ssh_common(self, data):
+        if self.__test_mode:
+            data['client'] = '1.0.204.42'
+
         self.check_blacklist(data)
         atk_id = self.__mysql_retry(self.__add_ssh_attacker, data)
         ses_id = self.__mysql_retry(self.__add_ssh_session, data, atk_id)
