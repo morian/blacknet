@@ -15,7 +15,7 @@ install:
   - pip install -U coveralls coverage
 
 before_script:
-  - mysql -u root -e 'CREATE USER IF NOT EXISTS blacknet@localhost;'
+  - mysql -u root -e 'CREATE USER IF NOT EXISTS blacknet@localhost IDENTIFIED BY "";'
   - mysql -u root -e 'CREATE DATABASE blacknet_tests;'
   - mysql -u root -e 'GRANT ALL ON blacknet_tests.* TO blacknet@localhost;'
   - mysql -u root -U blacknet_tests < "${TRAVIS_BUILD_DIR}/share/blacknet-install.sql"
