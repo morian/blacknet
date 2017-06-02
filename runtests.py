@@ -3,6 +3,7 @@
 from threading import Thread, Lock
 from signal import signal, SIGINT, SIGTERM
 from time import sleep
+import json
 import socket
 import paramiko
 
@@ -12,6 +13,7 @@ from blacknet.updater import BlacknetGeoUpdater
 from blacknet.scrubber import BlacknetScrubber
 
 
+SCRUBBER_STATS_FILE='tests/generated/stats_general.json'
 HONEYPOT_CONFIG_FILE='tests/blacknet-honeypot.cfg'
 MASTER_CONFIG_FILE='tests/blacknet.cfg'
 CLIENT_SSH_KEY='tests/ssh_key'
@@ -36,9 +38,9 @@ def runtests_ssh_client():
     except:
         pass
 
-    for i in range(10):
+    for i in '01abcé&L)€':
         try:
-            t.auth_password('blacknet', 'password%u' % i)
+            t.auth_password('blacknet', 'password_%s' % i)
         except:
             pass
     t.close()
@@ -64,6 +66,13 @@ def runtests_scrubber():
     bns.generate_stats()
     bns.generate_minimaps()
     bns.generate_map_data()
+
+
+def runtests_checker():
+    with open(SCRUBBER_STATS_FILE, 'r') as f:
+        d = json.load(f)
+        d = d['data']
+        print(d)
 
 
 def runtests_ssh():
@@ -114,3 +123,6 @@ if __name__ == '__main__':
 
     # DB scrubber and cache generator
     runtests_scrubber()
+
+    # Check number of attempts from database
+    runtests_checker()
