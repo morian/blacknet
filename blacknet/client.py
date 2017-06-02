@@ -47,7 +47,7 @@ class BlacknetClient(BlacknetSSLInterface):
     @property
     def server_is_sockfile(self):
         if not self._server_sockfile:
-            self._server_sockfile = (type(self.server_address) is not tuple)
+            self._server_sockfile = (not isinstance(self.server_address, tuple))
         return self._server_sockfile
 
 

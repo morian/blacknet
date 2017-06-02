@@ -17,7 +17,7 @@ GEOLITE_CSV_URL="https://geolite.maxmind.com/download/geoip/database/GeoLiteCity
 def utf8_ensure(csv_file):
     for line in csv_file:
         # Those lines are 'unicode' in python2
-        if type(line) is not str:
+        if not isinstance(line, str):
             line = line.strip().encode('utf-8')
         yield line
 

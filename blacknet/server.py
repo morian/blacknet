@@ -131,7 +131,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
 
         # Change permissions on UNIX sockets to apply new ones.
         for itf in interfaces:
-            if (type(itf) is str) and (itf in current_interfaces):
+            if isinstance(itf, str) and (itf in current_interfaces):
                 self._permissions_apply(itf)
 
         # Stop listening on listed interfaces.
@@ -144,7 +144,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
 
 
     def _listen_start(self, interface):
-        unix_socket = type(interface) is not tuple
+        unix_socket = not isinstance(interface, tuple)
         name = interface if unix_socket else "%s:%u" % interface
 
         if unix_socket:
