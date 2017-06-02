@@ -20,5 +20,10 @@ before_script:
 script:
   - coverage run ./runtests.py
 
+after_script:
+  - cat tests/generated/log-maestro.log
+  - cat tests/generated/log-honeypot00.log
+  - cat tests/generated/stats_general.json
+
 after_success:
   - coveralls
