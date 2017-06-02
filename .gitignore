@@ -1,3 +1,4 @@
+/.coverage/
 /*.pyc
 /.tox/
 /BlackNet.egg-info/

@@ -1,3 +1,4 @@
+import codecs
 import csv
 import os
 import shutil
@@ -6,10 +7,19 @@ import tempfile
 import urllib
 import zipfile
 
+
 from .config import BlacknetConfig, BlacknetConfigurationInterface
 from .database import BlacknetDatabase
 
 GEOLITE_CSV_URL="https://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip"
+
+
+def utf8_ensure(csv_file):
+    for line in csv_file:
+        # Those lines are 'unicode' in python2
+        if type(line) is not str:
+            line = line.strip().encode('utf-8')
+        yield line
 
 
 class BlacknetGeoUpdater(BlacknetConfigurationInterface):
@@ -95,7 +105,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
     def csv_blocks_import(self):
         block_file = self.__filepath['blocks']
-        block_f = open(block_file, 'r')
+        block_f = codecs.open(block_file, 'r', 'latin1')
 
         cursor = self.__database.cursor()
         cursor.truncate('blocks')
@@ -103,12 +113,11 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
         self.log("[+] Trimmed blocks table")
 
         line_count = 0
-        csv_data = csv.reader(block_f)
+        csv_data = csv.reader(utf8_ensure(block_f))
         for row in csv_data:
             line_count += 1
             if line_count < 3:
                 continue
-            row = [cell.decode('latin1') for cell in row]
             cursor.insert_block(row)
         block_f.close()
 
@@ -117,7 +126,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
     def csv_locations_import(self):
         block_file = self.__filepath['locations']
-        block_f = open(block_file, 'r')
+        block_f = codecs.open(block_file, 'r', 'latin1')
 
         cursor = self.__database.cursor()
         cursor.truncate('locations')
@@ -125,12 +134,11 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
         self.log("[+] Trimmed locations table")
 
         line_count = 0
-        csv_data = csv.reader(block_f)
+        csv_data = csv.reader(utf8_ensure(block_f))
         for row in csv_data:
             line_count += 1
             if line_count < 3:
                 continue
-            row = [cell.decode('latin1') for cell in row]
             cursor.insert_location(row)
         block_f.close()
 

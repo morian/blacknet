@@ -2,11 +2,15 @@ import math
 import time
 import json
 import sys
-import urllib
 
 from .config import BlacknetConfig, BlacknetConfigurationInterface
 from .database import BlacknetDatabase
 from .common import *
+
+try:
+    from urllib import urlretrieve
+except ImportError:
+    from urllib.request import urlretrieve
 
 
 WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -352,7 +356,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
 
         # Get and write the image.
         destination = "%s/status_%s.png" % (self.cache_path, name)
-        urllib.urlretrieve(url, destination)
+        urlretrieve(url, destination)
 
         time_diff = (time.time() - time_start)
         self.log_progress("[+] Bar char %s generated (%0.1fs)" % (name, time_diff))
@@ -414,7 +418,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         else:
             destination = "%s/minimap.png" % (self.cache_path)
 
-        urllib.urlretrieve(url, destination)
+        urlretrieve(url, destination)
 
         time_diff = (time.time() - time_start)
         if target:
