@@ -31,6 +31,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         self.__recent_delta = None
         self.__alive_threshold = None
         self.__recent_threshold = None
+        self.__targets = []
 
 
     def log_error(self, message):
