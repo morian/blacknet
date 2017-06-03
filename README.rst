@@ -1,11 +1,11 @@
 .. image:: https://travis-ci.org/morian/blacknet.svg?branch=master
-	:target: https://travis-ci.org/morian/blacknet
+  :target: https://travis-ci.org/morian/blacknet
 
 .. image:: https://coveralls.io/repos/github/morian/blacknet/badge.svg?branch=master
-	:target: https://coveralls.io/github/morian/blacknet?branch=master
+  :target: https://coveralls.io/github/morian/blacknet?branch=master
 
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
-	:target: https://github.com/morian/blacknet/blob/master/LICENSE
+  :target: https://github.com/morian/blacknet/blob/master/LICENSE
 
 
 BlackNet 2
@@ -45,14 +45,14 @@ fit with modern python programming standards.
 Requirements
 ------------
 * Python dependencies:
-	- CPython_ >= 2.7 or >= 3.2
-	- MsgPack_
-	- PyMySQL_
-	- Paramiko_
+  - CPython_ >= 2.7 or >= 3.3
+  - MsgPack_
+  - PyMySQL_
+  - Paramiko_
 
 * MySQL Server:
-	- MySQL_ (tested with only 5.2+)
-	- MariaDB_
+  - MySQL_ (tested with only 5.2+)
+  - MariaDB_
 
 .. _CPython: https://www.python.org
 .. _MsgPack: https://msgpack.org
@@ -73,18 +73,22 @@ Please read --help from both commands and read blacknet.cfg.example carefully.
 You need to generate SSL certificates in order to make blacknet work
 correctly over network stacks (please see next section).
 
-- From source with `pip install .`
-- From pip repository `pip install blacknet`
+- Installation using ``pip``:
+  $ pip install blacknet
+
 - Take a copy of blacknet.cfg.example and make your own configuration in
-  `/etc/blacknet/blacknet.cfg` or `${HOME}/.blacknet/blacknet.cfg`
-- Run [blacknet-install.sql](share/blacknet-install.sql) in your MySQL database.
+  ``/etc/blacknet/`` or ``${HOME}/.blacknet/``
+
+- Run `blacknet-install.sql`_ in your MySQL database.
 - You can update (and fill) the database with geolocation updates using
-  the command `blacknet-geo-updater`.
+  the command ``blacknet-geo-updater``.
 - You can also scrub your data to generate reports or perform metadata checks
-  using `blacknet-db-scrubber` (please consult --help for details)
-- Command `blacknet-db-scrubber` might be best run in a crontab (with --quiet)
+  using ``blacknet-db-scrubber`` (please consult --help for details)
+- Command ``blacknet-db-scrubber`` might be best run in a crontab (with --quiet)
 - You might want to filter out some specific users for some or all honeypots.
   Please see blacklist.cfg.example and put it in an appropriate directory.
+
+.. _`blacknet-install.sql`: https://github.com/morian/blacknet/blob/master/share/blacknet-install.sql
 
 
 Create your SSL certificates
@@ -94,33 +98,33 @@ certificates between your server and your honeypots.
 
 .. _EasyRsa: https://github.com/OpenVPN/easy-rsa
 
-```bash
-# First clone the easyrsa repository
-cd /tmp/
-git clone https://github.com/OpenVPN/easy-rsa.git
+.. code:: bash
 
-# Then create a new Authority
-cd /tmp/easy-rsa/easyrsa3
-./easyrsa init-pki
+  # First clone the easyrsa repository
+  cd /tmp/
+  git clone https://github.com/OpenVPN/easy-rsa.git
 
-# When asked provide a Common Name for your CA (eg: BlackNet CA)
-./easyrsa build-ca nopass
+  # Then create a new Authority
+  cd /tmp/easy-rsa/easyrsa3
+  ./easyrsa init-pki
 
-# Generate and sign a certificate for main server (here called maestro)
-./easyrsa gen-req maestro nopass
-./easyrsa sign server maestro
+  # When asked provide a Common Name for your CA (eg: BlackNet CA)
+  ./easyrsa build-ca nopass
 
-# Same for client
-./easyrsa gen-req honeypot_00 nopass
-./easyrsa sign client honeypot_00
-```
+  # Generate and sign a certificate for main server (here called maestro)
+  ./easyrsa gen-req maestro nopass
+  ./easyrsa sign server maestro
+
+  # Same for client
+  ./easyrsa gen-req honeypot_00 nopass
+  ./easyrsa sign client honeypot_00
 
 PEM file format used by BlackNet starts with the private key and then
 concatenates with the certificate (example bellow).
 
-```bash
-cat pki/private/maestro.key pki/issued/maestro.crt > maestro.pem
-```
+.. code:: bash
+
+  cat pki/private/maestro.key pki/issued/maestro.crt > maestro.pem
 
 Credits
 -------
