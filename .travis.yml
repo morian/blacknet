@@ -19,11 +19,10 @@ before_script:
 
 script:
   - coverage run ./runtests.py
-  - pip install --user .
-  - blacknet-master --help
-  - blacknet-sensor --help
-  - blacknet-updater --help
-  - blacknet-scrubber --help
+  - python bin/blacknet-master --help
+  - python bin/blacknet-sensor --help
+  - python bin/blacknet-updater --help
+  - python bin/blacknet-scrubber --help
 
 after_script:
   - cat tests/generated/log-maestro.log
