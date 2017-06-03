@@ -3,6 +3,7 @@
 import logging
 import os
 import signal
+import sys
 import time
 
 from signal import signal, getsignal, SIGINT, SIGTERM, SIGHUP
