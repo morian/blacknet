@@ -1,3 +1,7 @@
+==========
+Blacknet 2
+==========
+
 .. image:: https://travis-ci.org/morian/blacknet.svg?branch=master
   :target: https://travis-ci.org/morian/blacknet
 
@@ -8,38 +12,16 @@
   :target: https://github.com/morian/blacknet/blob/master/LICENSE
 
 
-BlackNet 2
-==========
+What
+----
 
-BlackNet is a low interaction SSH multi-head honeypot system with logging
+Blacknet is a low interaction SSH multi-head honeypot system with logging
 capabilities.
 
 You can use it to gather all SSH attempts performed on multiple IPv4 address
 you own on the internet and draw and export statistics out of it.
 A dedicated web interface allows live tracking of what happens on your
 honeypots, which IP addresses are targeting you and from where.
-
-
-History
--------
-The initial project featured a modified VirtualBox environment as a high
-interaction honeypot, gathering commands and events such as password changes.
-We then moved to supporting Kippo, a medium interaction SSH honeypot written
-in Python. Today's  version uses a lightweight paramiko server as a
-low-interaction honeypot since there are no more plans (and no more time) to
-handle commands and events automatically
-(there are many security concerns around doing high interaction automatically).
-The underlying MySQL schemes still refers to commands or events but they are
-mostly kept for backward compatibility reasons.
-
-Integration with Cowrie_ should not be hard to extend BlackNet features and
-make it highly interactive again.
-
-This project was initially conducted during our engineering studies in 2010.
-It was rewritten in 2017 to lower maintenance and installation efforts and to
-fit with modern python programming standards.
-
-.. _Cowrie: http://github.com/micheloosterhof/cowrie/
 
 
 Requirements
@@ -108,7 +90,7 @@ certificates between your server and your honeypots.
   cd /tmp/easy-rsa/easyrsa3
   ./easyrsa init-pki
 
-  # When asked provide a Common Name for your CA (eg: BlackNet CA)
+  # When asked provide a Common Name for your CA (eg: Blacknet CA)
   ./easyrsa build-ca nopass
 
   # Generate and sign a certificate for main server (here called maestro)
@@ -119,12 +101,35 @@ certificates between your server and your honeypots.
   ./easyrsa gen-req honeypot_00 nopass
   ./easyrsa sign client honeypot_00
 
-PEM file format used by BlackNet starts with the private key and then
+PEM file format used by Blacknet starts with the private key and then
 concatenates with the certificate (example bellow).
 
 .. code:: bash
 
   cat pki/private/maestro.key pki/issued/maestro.crt > maestro.pem
+
+
+History
+-------
+The initial project featured a modified VirtualBox environment as a high
+interaction honeypot, gathering commands and events such as password changes.
+We then moved to supporting Kippo, a medium interaction SSH honeypot written
+in Python. Today's  version uses a lightweight paramiko server as a
+low-interaction honeypot since there are no more plans (and no more time) to
+handle commands and events automatically
+(there are many security concerns around doing high interaction automatically).
+The underlying MySQL schemes still refers to commands or events but they are
+mostly kept for backward compatibility reasons.
+
+Integration with Cowrie_ should not be hard to extend Blacknet features and
+make it highly interactive again.
+
+This project was initially conducted during our engineering studies in 2010.
+It was rewritten in 2017 to lower maintenance and installation efforts and to
+fit with modern python programming standards.
+
+.. _Cowrie: http://github.com/micheloosterhof/cowrie/
+
 
 Credits
 -------

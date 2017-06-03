@@ -21,7 +21,7 @@ except:
 
 
 class BlacknetServer(BlacknetConfigurationInterface):
-    """ BlackNet TCP Server Instance (used for both SSH server and SSL server) """
+    """ Blacknet TCP Server Instance (used for both SSH server and SSL server) """
 
     # default listening interface when no config is found.
     _default_listen = BLACKNET_SSL_DEFAULT_LISTEN

@@ -1,7 +1,7 @@
 """
-BlackNet: A mutli-head python SSH honeypot system
+Blacknet: A mutli-head python SSH honeypot system
 
-Copyright (c) 2017 BlackNet contributors
+Copyright (c) 2017 Blacknet contributors
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -28,7 +28,7 @@ from .scrubber import BlacknetScrubber
 from .ssh_server import BlacknetSSHServer
 from .updater import BlacknetGeoUpdater
 
-VERSION = (2, 0, 2, None)
+VERSION = (2, 0, 3, None)
 threadsafety = 1
 
 __version__ = '.'.join(map(str, VERSION))

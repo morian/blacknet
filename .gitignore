@@ -1,7 +1,7 @@
 /.coverage
 /*.pyc
 /.tox/
-/BlackNet.egg-info/
+/blacknet.egg-info/
 /build/
 /dist/
 /tests/generated/

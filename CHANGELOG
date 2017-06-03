@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.0.1] - 2017-06-03
+## [2.0.3] - 2017-06-03
 - Improve Python compatbility
 - Fix examples and threading issues
 

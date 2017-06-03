@@ -5,7 +5,7 @@ from threading import Lock
 
 
 class BlacknetLogger(BlacknetConfigurationInterface):
-    """ Custom logger for BlackNet instances """
+    """ Custom logger for Blacknet instances """
 
 
     def __init__(self, role, config):

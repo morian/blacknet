@@ -14,7 +14,7 @@ with codecs.open('./README.rst', 'r', 'utf-8') as f:
     readme = f.read()
 
 setup(
-    name             = 'BlackNet',
+    name             = 'blacknet',
     version          = version,
     url              = 'http://github.com/morian/blacknet/',
     author           = 'Romain Bezut',
