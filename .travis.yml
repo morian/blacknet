@@ -19,6 +19,7 @@ before_script:
 
 script:
   - coverage run ./runtests.py
+  - export PYTHONPATH=.
   - python bin/blacknet-master --help
   - python bin/blacknet-sensor --help
   - python bin/blacknet-updater --help
