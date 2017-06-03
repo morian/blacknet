@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 
+import logging
 import os
 import signal
 import time
@@ -12,9 +13,12 @@ running = True
 update = False
 
 
-# DEBUG
-# import paramiko
-# paramiko.util.log_to_file('/tmp/blacknet-client.log')
+# Log paramiko stuff to stdout.
+l = logging.getLogger("paramiko")
+l.setLevel(logging.WARNING)
+
+c = logging.StreamHandler(sys.stdout)
+l.addHandler(c)
 
 
 def blacknet_quit(signal, frame):

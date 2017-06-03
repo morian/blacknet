@@ -1,10 +1,9 @@
 import errno
 import os
-import select
 import socket
 
 from pymysql import MySQLError
-from msgpack import Unpacker
+from msgpack import Unpacker, Packer
 from threading import Lock, Thread
 
 from .config import BlacknetBlacklist
@@ -82,10 +81,12 @@ class BlacknetServerThread(Thread):
             BlacknetMsgType.CLIENT_NAME: self.handle_client_name,
             BlacknetMsgType.SSH_CREDENTIAL: self.handle_ssh_credential,
             BlacknetMsgType.SSH_PUBLICKEY: self.handle_ssh_publickey,
+            BlacknetMsgType.GOODBYE: self.handle_goodbye,
         }
         self.handler = handler
 
         self.__blacklist = bns.blacklist
+        self.__client = None
         self.__connect_lock = Lock()
         self.__database = bns.database
         self.__cursor = None
@@ -93,6 +94,7 @@ class BlacknetServerThread(Thread):
         self.__mysql_error = 0
         self.__session_interval = bns.session_interval
         self.__unpacker = Unpacker(encoding='utf-8')
+        self.__packer = Packer(encoding='utf-8')
         self.__dropped_count = 0
         self.__attempt_count = 0
         self.__atk_cache = {}
@@ -134,8 +136,9 @@ class BlacknetServerThread(Thread):
     @property
     def peername(self):
         name = "unknown"
-        if self.__use_ssl:
-            cert = self.__client.getpeercert()
+        client = self.__client
+        if self.__use_ssl and client:
+            cert = client.getpeercert()
             if 'subject' in cert:
                 for item in cert['subject']:
                     if item[0][0] == "commonName":
@@ -145,12 +148,14 @@ class BlacknetServerThread(Thread):
 
     def run(self):
         client = self.__client
+        running = True
 
-        while True:
+        while running:
             try:
                 buf = client.recv(1024**2)
             except socket.error as e:
                 self.log("socket error: %s" % e)
+                print(e)
                 break
 
             if not buf:
@@ -162,6 +167,9 @@ class BlacknetServerThread(Thread):
                     self.handler[msgtype](data)
                 else:
                     self.handle_unknown(msgtype, data)
+
+                if msgtype == BlacknetMsgType.GOODBYE:
+                    running = False
             self.__database.commit()
         self.disconnect()
 
@@ -192,7 +200,7 @@ class BlacknetServerThread(Thread):
 
                 self.__cursor = None
                 self.__database.disconnect()
-        raise
+                raise
 
 
     ## -- Message handling functions -- ##
@@ -202,6 +210,12 @@ class BlacknetServerThread(Thread):
     def handle_hello(self, data):
         if data != BLACKNET_HELLO:
             self.log("client reported buggy hello (got %s, expected %s)" % (data, BLACKNET_HELLO))
+
+    def handle_goodbye(self, data):
+        client = self.__client
+        if client:
+            data = [BlacknetMsgType.GOODBYE, None]
+            client.send(self.__packer.pack(data))
 
     def handle_client_name(self, data):
         if data != self.name:
@@ -321,6 +335,7 @@ class BlacknetServerThread(Thread):
             (atk_id, ses_id, att_id) = self.__handle_ssh_common(data)
 
         except Exception as e:
+            self.log("credential error: %s" % e)
             self.__dropped_count += 1
         else:
             self.__attempt_count += 1
@@ -331,7 +346,7 @@ class BlacknetServerThread(Thread):
             (atk_id, ses_id, att_id) = self.__handle_ssh_common(data)
             key_id = self.__mysql_retry(self.__add_ssh_pubkey, data, att_id)
         except Exception as e:
-            raise
+            self.log("pubkey error: %s" % e)
             self.__dropped_count += 1
         else:
             self.__attempt_count += 1

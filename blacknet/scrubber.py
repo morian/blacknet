@@ -1,3 +1,4 @@
+import codecs
 import math
 import time
 import json
@@ -180,7 +181,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
 
     def __json_export(self, filepath, data):
         path = "%s/%s" % (self.cache_path, filepath)
-        with open(path, 'w') as f:
+        with codecs.open(path, 'w', 'utf-8') as f:
             f.write(json.dumps({'data':data}))
 
     def __generate_targets(self, filepath):

@@ -269,7 +269,8 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
                     'user': user,
                     'password': passwd,
                     'db': database,
-                    'unix_socket': socket
+                    'unix_socket': socket,
+                    'charset': 'utf8',
                 }
                 self.__database = pymysql.connect(**kwargs)
                 self.log("pymysql: database connection successful")

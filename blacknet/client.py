@@ -1,8 +1,9 @@
-import msgpack
+import select
 import socket
 import sys
 
-from threading import Lock
+from msgpack import Unpacker, Packer
+from threading import Lock, RLock
 
 from .ssl_interface import BlacknetSSLInterface
 from .common import *
@@ -20,9 +21,10 @@ class BlacknetClient(BlacknetSSLInterface):
         self.__server_socket = None
         self.__server_error = False
         self.__client_name = None
-        self.__connect_lock = Lock()
+        self.__connect_lock = RLock()
         self.__send_lock = Lock()
-        self.__packer = msgpack.Packer(encoding='utf-8')
+        self.__packer = Packer(encoding='utf-8')
+        self.__unpacker = Unpacker(encoding='utf-8')
 
 
     def __del__(self):
@@ -95,8 +97,10 @@ class BlacknetClient(BlacknetSSLInterface):
                 self.__server_socket = self._connect()
                 send_handshake = True
                 if self.__server_error:
-                    self.log("Reconnected successfully")
-                    self.__server_error = False
+                    self.log("client reconnected successfully")
+                else:
+                    self.log("client connected successfully")
+                self.__server_error = False
         except:
             self.__server_error = True
             raise
@@ -133,9 +137,16 @@ class BlacknetClient(BlacknetSSLInterface):
         return sock
 
 
-    def disconnect(self):
+    def disconnect(self, goodbye=True):
         self.__connect_lock.acquire()
         if self.__server_socket:
+            if goodbye:
+                try:
+                    self._send_goodbye()
+                    self._recv_goodbye()
+                except:
+                    pass
+
             try:
                 self.__server_socket.shutdown(socket.SHUT_RDWR)
             except socket.error as e:
@@ -156,10 +167,25 @@ class BlacknetClient(BlacknetSSLInterface):
             self.__server_address = new_server_address
             self.disconnect()
 
+    def _recv_goodbye(self):
+        try:
+            sock = self._server_socket
+            acceptable = select.select([sock], [], [], BLACKNET_CLIENT_GOODBYE_TIMEOUT)
+            if acceptable[0]:
+                buf = self._server_socket.recv()
+                self.__unpacker.feed(buf)
 
-    def _send(self, msgtype, message):
+                for (msgtype, data) in self.__unpacker:
+                    if msgtype == BlacknetMsgType.GOODBYE:
+                        self.log("client received goodbye acknowledgement.")
+        except Exception as e:
+            self.log("client error: %s" % e)
+
+
+    def _send(self, msgtype, message=None):
         data = [msgtype, message]
-        self._server_socket.send(self.__packer.pack(data))
+        sock = self._server_socket
+        sock.send(self.__packer.pack(data))
 
 
     def _send_handshake(self):
@@ -167,6 +193,8 @@ class BlacknetClient(BlacknetSSLInterface):
         if self.client_name:
             self._send(BlacknetMsgType.CLIENT_NAME, self.client_name)
 
+    def _send_goodbye(self):
+        self._send(BlacknetMsgType.GOODBYE)
 
     def _send_retry(self, msgtype, message, tries=2):
         while tries:
@@ -175,7 +203,8 @@ class BlacknetClient(BlacknetSSLInterface):
                 self._send(msgtype, message)
                 tries = 0
             except socket.error as e:
-                self.disconnect()
+                print("%s" % e)
+                self.disconnect(goodbye=False)
                 tries -= 1
             finally:
                 self.__send_lock.release()

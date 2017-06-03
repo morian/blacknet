@@ -3,9 +3,13 @@
 from threading import Thread, Lock
 from signal import signal, SIGINT, SIGTERM
 from time import sleep
+
 import json
-import socket
+import logging
+import os
 import paramiko
+import socket
+import sys
 
 from blacknet.ssh_server import BlacknetSSHServer
 from blacknet.main_server import BlacknetMainServer
@@ -17,6 +21,14 @@ SCRUBBER_STATS_FILE='tests/generated/stats_general.json'
 HONEYPOT_CONFIG_FILE='tests/blacknet-honeypot.cfg'
 MASTER_CONFIG_FILE='tests/blacknet.cfg'
 CLIENT_SSH_KEY='tests/ssh_key'
+
+
+# Log paramiko stuff to stdout.
+l = logging.getLogger("paramiko")
+l.setLevel(logging.ERROR)
+
+c = logging.StreamHandler(sys.stdout)
+l.addHandler(c)
 
 
 def runtests_ssh_serve(bns):
@@ -38,10 +50,11 @@ def runtests_ssh_client():
     except:
         pass
 
-    for i in '01abcé&L)€':
+    for suffix in ['0', '1', 'a', 'b', 'c', 'é', '&', 'L', ')', '€', '\xfe']:
         try:
-            t.auth_password('blacknet', 'password_%s' % i)
-        except:
+            password = 'password_%s' % suffix
+            t.auth_password('blacknet', password)
+        except Exception as e:
             pass
     t.close()
 
@@ -71,8 +84,10 @@ def runtests_scrubber():
 def runtests_checker():
     with open(SCRUBBER_STATS_FILE, 'r') as f:
         d = json.load(f)
-        d = d['data']
+        d = d['data'][0]
         print(d)
+
+        return d[0] > 10
 
 
 def runtests_ssh():
@@ -111,8 +126,9 @@ def runtests_ssh():
 
     print("[+] Closing servers")
     # Close servers
-    for s in servers:
-        s.shutdown()
+    bn_ssh.shutdown()
+    bn_main.shutdown()
+
 
 if __name__ == '__main__':
     # Update geolocation database with minimal sample
@@ -125,4 +141,7 @@ if __name__ == '__main__':
     runtests_scrubber()
 
     # Check number of attempts from database
-    runtests_checker()
+    success = runtests_checker()
+    if success:
+        sys.exit(os.EX_OK)
+    sys.exit(os.EX_SOFTWARE)

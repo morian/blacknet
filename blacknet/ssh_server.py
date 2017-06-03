@@ -16,7 +16,6 @@ from .server import BlacknetServer
 from .common import *
 
 
-
 class BlacknetSSHSession(paramiko.ServerInterface):
     """ SSH session to collect data from """
 
@@ -51,8 +50,8 @@ class BlacknetSSHSession(paramiko.ServerInterface):
     def __auth_common_obj(self, username):
         obj = {}
         obj['client'] = self.peer_name
-        obj['version'] = self.client_version
-        obj['user'] = username
+        obj['version'] = blacknet_ensure_unicode(self.client_version)
+        obj['user'] = blacknet_ensure_unicode(username)
         obj['time'] = int(time.time())
         return obj
 
@@ -61,9 +60,12 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         # reset the auth_fail counter to be able to handle faster retries
         self.__transport.auth_handler.auth_fail_count = 0
 
-        obj = self.__auth_common_obj(username)
-        obj['passwd'] = password
-        self.blacknet.send_ssh_credential(obj)
+        try:
+            obj = self.__auth_common_obj(username)
+            obj['passwd'] = blacknet_ensure_unicode(password)
+            self.blacknet.send_ssh_credential(obj)
+        except:
+            pass
 
         return AUTH_FAILED
 
@@ -72,12 +74,15 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         # remove publickey authentication after one call.
         self.__allowed_auths.remove('publickey')
 
-        obj = self.__auth_common_obj(username)
-        obj['k64'] = key.get_base64()
-        obj['ksize'] = key.get_bits()
-        obj['kfp'] = hexlify(key.get_fingerprint())
-        obj['ktype'] = key.get_name()
-        self.blacknet.send_ssh_publickey(obj)
+        try:
+            obj = self.__auth_common_obj(username)
+            obj['k64'] = key.get_base64()
+            obj['ksize'] = key.get_bits()
+            obj['kfp'] = hexlify(key.get_fingerprint())
+            obj['ktype'] = key.get_name()
+            self.blacknet.send_ssh_publickey(obj)
+        except:
+            pass
 
         return AUTH_FAILED
 
@@ -149,6 +154,10 @@ class BlacknetSSHServer(BlacknetServer):
         """ serve new connections into new threads """
         super(BlacknetSSHServer, self).serve(BlacknetSSHServerThread)
 
+
+    def shutdown(self):
+        self.blacknet.disconnect()
+        super(BlacknetSSHServer, self).shutdown()
 
 
 class BlacknetSSHServerThread(Thread):
