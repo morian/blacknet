@@ -46,10 +46,10 @@ Requirements
 
 Installation
 ------------
-Blacknet is provided in two main parts, a SSH Server and a Main Server.
-The Main Server (blacknet-main-server) is where the database is located.
-The SSH Server (blacknet-ssh-server) is just a honeypot instance communicating
-with the main server.
+Blacknet provides two components, a SSH Server (sensor) and a master server.
+The master server (blacknet-master) is where the database is located.
+The SSH server (blacknet-sensor) is just a honeypot instance communicating with
+the master server.
 Please read --help from both commands and read blacknet.cfg.example carefully.
 
 You need to generate SSL certificates in order to make blacknet work
@@ -63,10 +63,10 @@ correctly over network stacks (please see next section).
 
 - Run `blacknet-install.sql`_ in your MySQL database.
 - You can update (and fill) the database with geolocation updates using
-  the command ``blacknet-geo-updater``.
+  the command ``blacknet-updater``.
 - You can also scrub your data to generate reports or perform metadata checks
-  using ``blacknet-db-scrubber`` (please consult --help for details)
-- Command ``blacknet-db-scrubber`` might be best run in a crontab (with --quiet)
+  using ``blacknet-scrubber`` (please consult --help for details)
+- Command ``blacknet-scrubber`` might be best run in a crontab (with --quiet)
 - You might want to filter out some specific users for some or all honeypots.
   Please see blacklist.cfg.example and put it in an appropriate directory.
 
@@ -93,11 +93,11 @@ certificates between your server and your honeypots.
   # When asked provide a Common Name for your CA (eg: Blacknet CA)
   ./easyrsa build-ca nopass
 
-  # Generate and sign a certificate for main server (here called maestro)
+  # Generate and sign a certificate for master server (here called maestro)
   ./easyrsa gen-req maestro nopass
   ./easyrsa sign server maestro
 
-  # Same for client
+  # Same for sensors
   ./easyrsa gen-req honeypot_00 nopass
   ./easyrsa sign client honeypot_00
 

@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;    Blacknet Project, see LICENSE    ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Configuration file for Blacknet main server.
+;; Configuration file for Blacknet master server.
 
 [mysql]
 ; Unix sockets are faster than just connecting throught the IP protocol.

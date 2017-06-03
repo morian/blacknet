@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from threading import Thread, Lock
 from signal import signal, SIGINT, SIGTERM
@@ -95,12 +96,12 @@ def runtests_ssh():
     servers = []
     threads = []
 
-    # Create Main Server instance
+    # Create master server instance
     print("[+] Creating main server instance")
     bn_main = BlacknetMainServer(MASTER_CONFIG_FILE)
     servers.append(bn_main)
 
-    # Create SSH Server instance
+    # Create SSH sensor instance
     print("[+] Creating SSH server instance")
     bn_ssh = BlacknetSSHServer(cfg_file=HONEYPOT_CONFIG_FILE)
     servers.append(bn_ssh)

@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;    Blacknet Project, see LICENSE    ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Configuration file for Blacknet honeypot.
+;; Configuration file for Blacknet sensor (honeypot).
 
 [honeypot]
 ; SSH server listening interface(s)

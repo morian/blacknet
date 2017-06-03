@@ -157,4 +157,4 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
         self.log("[+] Update Complete")
         if not self.test_mode:
-            self.log("[!] We *STRONGLY* suggest running \"blacknet-db-scrubber --full-check --fix\" to update gelocation positions.")
+            self.log("[!] We *STRONGLY* suggest running \"blacknet-scrubber --full-check --fix\" to update gelocation positions.")

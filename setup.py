@@ -23,8 +23,8 @@ setup(
     license          = 'MIT',
     long_description = readme,
     packages         = find_packages(),
-    scripts          = ['bin/blacknet-main-server', 'bin/blacknet-ssh-server',
-                        'bin/blacknet-geo-updater', 'bin/blacknet-db-scrubber'],
+    scripts          = ['bin/blacknet-master', 'bin/blacknet-sensor',
+                        'bin/blacknet-updater', 'bin/blacknet-scrubber'],
     install_requires = ['configparser', 'msgpack-python', 'PyMySQL', 'paramiko'],
     classifiers      =  [
         "Operating System :: POSIX :: Linux",
