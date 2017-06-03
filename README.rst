@@ -1,3 +1,13 @@
+.. image:: https://travis-ci.org/morian/blacknet.svg?branch=master
+	:target: https://travis-ci.org/morian/blacknet
+
+.. image:: https://coveralls.io/repos/github/morian/blacknet/badge.svg?branch=master
+	:target: https://coveralls.io/github/morian/blacknet?branch=master
+
+.. image:: https://img.shields.io/badge/license-MIT-blue.svg
+	:target: https://github.com/morian/blacknet/blob/master/LICENSE
+
+
 BlackNet 2
 ==========
 
@@ -22,20 +32,34 @@ handle commands and events automatically
 The underlying MySQL schemes still refers to commands or events but they are
 mostly kept for backward compatibility reasons.
 
-Integration with [Cowrie](http://github.com/micheloosterhof/cowrie/) should not
-be hard to extend BlackNet features and make it highly interactive again.
+Integration with Cowrie_ should not be hard to extend BlackNet features and
+make it highly interactive again.
 
 This project was initially conducted during our engineering studies in 2010.
 It was rewritten in 2017 to lower maintenance and installation efforts and to
 fit with modern python programming standards.
 
+.. _Cowrie: http://github.com/micheloosterhof/cowrie/
+
 
 Requirements
 ------------
-- Python 2.7 or 3.4 (only tested on these versions)
-- MsgPack for Python (used by both Servers)
-- PyMySQL (used by MainServer only)
-- Paramiko (used by honeypots to serve SSH requests)
+* Python dependencies:
+	- CPython_ >= 2.7 or >= 3.2
+	- MsgPack_
+	- PyMySQL_
+	- Paramiko_
+
+* MySQL Server:
+	- MySQL_ (tested with only 5.2+)
+	- MariaDB_
+
+.. _CPython: https://www.python.org
+.. _MsgPack: https://msgpack.org
+.. _PyMySQL: https://github.com/PyMySQL/PyMySQL
+.. _Paramiko: http://www.paramiko.org
+.. _MySQL: http://www.mysql.com/
+.. _MariaDB: https://mariadb.org/
 
 
 Installation
@@ -65,9 +89,10 @@ correctly over network stacks (please see next section).
 
 Create your SSL certificates
 ----------------------------
-Please use [easy-rsa](https://github.com/OpenVPN/easy-rsa) or equivalent to
-generate your own PKI and deliver certificates between your server and your
-honeypots.
+Please use EasyRSA_ or equivalent to generate your own PKI and deliver
+certificates between your server and your honeypots.
+
+.. _EasyRsa: https://github.com/OpenVPN/easy-rsa
 
 ```bash
 # First clone the easyrsa repository
@@ -97,12 +122,6 @@ concatenates with the certificate (example bellow).
 cat pki/private/maestro.key pki/issued/maestro.crt > maestro.pem
 ```
 
-License
--------
-This tool is provided under the MIT license
-Please see [LICENSE.md](LICENSE.md)
-
-
 Credits
 -------
 - Romain Bezut (2010, 2017)
@@ -111,9 +130,11 @@ Credits
 
 Thanks
 ------
-- We would like to thank the UTC (Université de Technologie de Compiègne).
+- We would like to thank the UTC_ (Université de Technologie de Compiègne).
   Our school brought us support and have made this project possible during
   class. Special thanks go to our teacher who supervised this project.
 - We would like to thank all our friends who helped finding issues and
   review this project in its early versions.
 - The hackers and bots who contributed in spite of themselves to this project.
+
+.. _UTC: https://www.utc.fr

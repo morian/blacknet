@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.1] - 2017-06-03
+- Improve Python compatbility
+- Fix examples and threading issues
+
 ## [2.0.0] - 2017-05-21
 - Complete rewrite of all blacknet
 - Minor database structure update (to accept public keys)

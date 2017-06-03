@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import codecs
 from setuptools import setup, find_packages
 
 version_tuple = __import__('blacknet').VERSION
@@ -9,7 +10,7 @@ if version_tuple[3] is not None:
 else:
     version = "%d.%d.%d" % version_tuple[:3]
 
-with open('./README.txt') as f:
+with codecs.open('./README.rst', 'r', 'utf-8') as f:
     readme = f.read()
 
 setup(
@@ -32,6 +33,7 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.4',
     ],
 )
