@@ -28,7 +28,7 @@ from .scrubber import BlacknetScrubber
 from .ssh_server import BlacknetSSHServer
 from .updater import BlacknetGeoUpdater
 
-VERSION = (2, 0, 1, None)
+VERSION = (2, 0, 2, None)
 threadsafety = 1
 
 __version__ = '.'.join(map(str, VERSION))
