@@ -68,6 +68,12 @@ class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
         super(BlacknetMainServer, self).serve(BlacknetServerThread)
 
 
+    def shutdown(self):
+        self.database.disconnect()
+        super(BlacknetMainServer, self).shutdown()
+
+
+
 
 class BlacknetServerThread(Thread):
     """ Server thread handling blacknet client connections """
