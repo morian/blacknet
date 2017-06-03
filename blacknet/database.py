@@ -275,7 +275,7 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
                 self.__database = pymysql.connect(**kwargs)
                 self.log("pymysql: database connection successful")
         except Exception as e:
-            print(e)
+            self.log('database: %s' % e)
         finally:
             self.__connection_lock.release()
 

@@ -37,9 +37,7 @@ class BlacknetSSHSession(paramiko.ServerInterface):
     @property
     def client_version(self):
         if not self.__client_version:
-            cl = self.__transport.remote_version.split('-')
-            if len(cl) > 2:
-                self.__client_version = cl[2]
+            self.__client_version = self.__transport.remote_version
         return self.__client_version
 
 
@@ -172,6 +170,7 @@ class BlacknetSSHServerThread(Thread):
         peername = client.getpeername()
         self.__peer_ip = peername[0] if peername else "local"
         self.__client = client
+        self.__transport = None
 
 
     def __del__(self):
@@ -192,6 +191,7 @@ class BlacknetSSHServerThread(Thread):
             pass
         t.add_server_key(self.__bns.ssh_host_key)
         t.set_keepalive(10)
+        self.__transport = t
 
         ssh_serv = BlacknetSSHSession(t, self.__bns.blacknet)
         try:
@@ -210,8 +210,13 @@ class BlacknetSSHServerThread(Thread):
 
     def disconnect(self):
         self.__connection_lock.acquire()
-        if self.__client:
+        if self.__transport:
             self.log("SSH: stopping session")
+            self.__transport.close()
+            self.__transport = None
+            self.__client = None
+
+        if self.__client:
             try:
                 self.__client.shutdown(socket.SHUT_RDWR)
             except socket.error:

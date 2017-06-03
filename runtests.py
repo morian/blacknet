@@ -25,7 +25,7 @@ CLIENT_SSH_KEY='tests/ssh_key'
 
 # Log paramiko stuff to stdout.
 l = logging.getLogger("paramiko")
-l.setLevel(logging.ERROR)
+l.setLevel(logging.WARNING)
 
 c = logging.StreamHandler(sys.stdout)
 l.addHandler(c)
@@ -121,13 +121,14 @@ def runtests_ssh():
         t.start()
 
     print("[+] Running SSH login attempts")
+
     # Simulate a SSH client connecting
     runtests_ssh_client()
 
-    print("[+] Closing servers")
     # Close servers
     bn_ssh.shutdown()
     bn_main.shutdown()
+    print("[+] Closed servers")
 
 
 if __name__ == '__main__':

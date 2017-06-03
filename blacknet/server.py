@@ -240,4 +240,5 @@ class BlacknetServer(BlacknetConfigurationInterface):
         self._listen_start_stop()
         self._threads_killer()
         self.log("== %s stopped" % self.__class__.__name__)
+        self._logger.close()
 

@@ -73,8 +73,6 @@ class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
         super(BlacknetMainServer, self).shutdown()
 
 
-
-
 class BlacknetServerThread(Thread):
     """ Server thread handling blacknet client connections """
 
@@ -161,7 +159,6 @@ class BlacknetServerThread(Thread):
                 buf = client.recv(1024**2)
             except socket.error as e:
                 self.log("socket error: %s" % e)
-                print(e)
                 break
 
             if not buf:
@@ -202,6 +199,7 @@ class BlacknetServerThread(Thread):
             except MySQLError as e:
                 if self.__mysql_error != e.args[0]:
                     self.__mysql_error = e.args[0]
+                    print(e)
                     self.log("MySQL[%u]: %s" % e.args)
 
                 self.__cursor = None
