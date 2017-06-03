@@ -69,8 +69,8 @@ class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
 
 
     def shutdown(self):
-        self.database.disconnect()
         super(BlacknetMainServer, self).shutdown()
+        self.database.disconnect()
 
 
 class BlacknetServerThread(Thread):
@@ -199,7 +199,6 @@ class BlacknetServerThread(Thread):
             except MySQLError as e:
                 if self.__mysql_error != e.args[0]:
                     self.__mysql_error = e.args[0]
-                    print(e)
                     self.log("MySQL[%u]: %s" % e.args)
 
                 self.__cursor = None

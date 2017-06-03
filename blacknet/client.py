@@ -176,8 +176,11 @@ class BlacknetClient(BlacknetSSLInterface):
                 self.__unpacker.feed(buf)
 
                 for (msgtype, data) in self.__unpacker:
+                    # This is the only message type we can receive here.
                     if msgtype == BlacknetMsgType.GOODBYE:
                         self.log("client received goodbye acknowledgement.")
+            else:
+                self.log("client did not receive goodbye from server, quitting.")
         except Exception as e:
             self.log("client error: %s" % e)
 
