@@ -45,14 +45,14 @@ fit with modern python programming standards.
 Requirements
 ------------
 * Python dependencies:
-  - CPython_ >= 2.7 or >= 3.3
-  - MsgPack_
-  - PyMySQL_
-  - Paramiko_
+	- CPython_ >= 2.7 or >= 3.4
+	- MsgPack_
+	- PyMySQL_
+	- Paramiko_
 
 * MySQL Server:
-  - MySQL_ (tested with only 5.2+)
-  - MariaDB_
+	- MySQL_ (tested with only 5.2+)
+	- MariaDB_
 
 .. _CPython: https://www.python.org
 .. _MsgPack: https://msgpack.org
