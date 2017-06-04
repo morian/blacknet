@@ -85,9 +85,9 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         return AUTH_FAILED
 
 
-class BlacknetSSHServer(BlacknetServer):
+class BlacknetSensor(BlacknetServer):
     """
-    BlacknetSSHServer (SSH Server) main class.
+    BlacknetSensor (SSH Server) main class.
     Inherits from BlacknetServer for all the thread management
     and configuratiion parsing.
     """
@@ -97,7 +97,7 @@ class BlacknetSSHServer(BlacknetServer):
 
 
     def __init__(self, cfg_file=None):
-        super(BlacknetSSHServer, self).__init__('honeypot', cfg_file)
+        super(BlacknetSensor, self).__init__('honeypot', cfg_file)
         self.__ssh_banner = None
 
         self.ssh_host_key = None
@@ -143,27 +143,27 @@ class BlacknetSSHServer(BlacknetServer):
     def reload(self):
         """ reload server configuration """
 
-        super(BlacknetSSHServer, self).reload()
+        super(BlacknetSensor, self).reload()
         self.__ssh_private_key_check()
         self.blacknet.reload()
 
 
     def serve(self):
         """ serve new connections into new threads """
-        super(BlacknetSSHServer, self).serve(BlacknetSSHServerThread)
+        super(BlacknetSensor, self).serve(BlacknetSensorThread)
 
 
     def shutdown(self):
         self.blacknet.disconnect()
-        super(BlacknetSSHServer, self).shutdown()
+        super(BlacknetSensor, self).shutdown()
 
 
-class BlacknetSSHServerThread(Thread):
+class BlacknetSensorThread(Thread):
     """ Separate thread to handle SSH incoming connection requests. """
 
 
     def __init__(self, bns, client):
-        super(BlacknetSSHServerThread, self).__init__()
+        super(BlacknetSensorThread, self).__init__()
         self.__connection_lock = Lock()
         self.__bns = bns
 

@@ -8,7 +8,7 @@ import time
 
 from signal import signal, getsignal, SIGINT, SIGTERM, SIGHUP
 from optparse import OptionParser
-from blacknet.ssh_server import BlacknetSSHServer
+from blacknet.sensor import BlacknetSensor
 
 running = True
 update = False
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     if options.pidfile:
         blacknet_write_pid(options.pidfile)
 
-    bns = BlacknetSSHServer(options.config)
+    bns = BlacknetSensor(options.config)
     while running:
         if update:
             bns.reload()

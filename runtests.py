@@ -12,7 +12,7 @@ import paramiko
 import socket
 import sys
 
-from blacknet.ssh_server import BlacknetSSHServer
+from blacknet.sensor import BlacknetSensor
 from blacknet.master import BlacknetMasterServer
 from blacknet.updater import BlacknetGeoUpdater
 from blacknet.scrubber import BlacknetScrubber
@@ -103,7 +103,7 @@ def runtests_ssh():
 
     # Create SSH sensor instance
     print("[+] Creating SSH server instance")
-    bn_ssh = BlacknetSSHServer(cfg_file=HONEYPOT_CONFIG_FILE)
+    bn_ssh = BlacknetSensor(cfg_file=HONEYPOT_CONFIG_FILE)
     servers.append(bn_ssh)
 
     # Check configuration reloading

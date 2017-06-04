@@ -25,7 +25,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .master import BlacknetMasterServer
 from .scrubber import BlacknetScrubber
-from .ssh_server import BlacknetSSHServer
+from .sensor import BlacknetSensor
 from .updater import BlacknetGeoUpdater
 
 VERSION = (2, 0, 3, None)
@@ -33,6 +33,6 @@ threadsafety = 1
 
 __version__ = '.'.join(map(str, VERSION))
 __all__ = [
-    'BlacknetMasterServer', 'BlacknetScrubber', 'BlacknetSSHServer', 'BlacknetGeoUpdater',
+    'BlacknetMasterServer', 'BlacknetScrubber', 'BlacknetSensor', 'BlacknetGeoUpdater',
     'threadsafety', '__version__',
 ]
