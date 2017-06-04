@@ -13,7 +13,7 @@ import socket
 import sys
 
 from blacknet.ssh_server import BlacknetSSHServer
-from blacknet.main_server import BlacknetMainServer
+from blacknet.master import BlacknetMasterServer
 from blacknet.updater import BlacknetGeoUpdater
 from blacknet.scrubber import BlacknetScrubber
 
@@ -98,7 +98,7 @@ def runtests_ssh():
 
     # Create master server instance
     print("[+] Creating main server instance")
-    bn_main = BlacknetMainServer(MASTER_CONFIG_FILE)
+    bn_main = BlacknetMasterServer(MASTER_CONFIG_FILE)
     servers.append(bn_main)
 
     # Create SSH sensor instance

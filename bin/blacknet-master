@@ -4,7 +4,7 @@ import os
 
 from signal import signal, getsignal, SIGINT, SIGTERM, SIGHUP
 from optparse import OptionParser
-from blacknet.main_server import BlacknetMainServer
+from blacknet.master import BlacknetMasterServer
 
 running = True
 update = False
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     if options.pidfile:
         blacknet_write_pid(options.pidfile)
 
-    bns = BlacknetMainServer(options.config)
+    bns = BlacknetMasterServer(options.config)
     while running:
         if update:
             bns.reload()

@@ -13,12 +13,12 @@ from .server import BlacknetServer
 from .common import *
 
 
-class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
+class BlacknetMasterServer(BlacknetServer, BlacknetSSLInterface):
     """ Main blackNet server class """
 
 
     def __init__(self, cfg_file=None):
-        super(BlacknetMainServer, self).__init__('server', cfg_file)
+        super(BlacknetMasterServer, self).__init__('server', cfg_file)
         BlacknetSSLInterface.__init__(self, self.config, 'server')
 
         self.__test_mode = None
@@ -55,7 +55,7 @@ class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
     def reload(self):
         """ reload server configuration """
 
-        super(BlacknetMainServer, self).reload()
+        super(BlacknetMasterServer, self).reload()
         self.__test_mode = None
         self.__session_interval = None
         self.database.reload()
@@ -65,11 +65,11 @@ class BlacknetMainServer(BlacknetServer, BlacknetSSLInterface):
     def serve(self):
         """ serve new connections into new threads """
 
-        super(BlacknetMainServer, self).serve(BlacknetServerThread)
+        super(BlacknetMasterServer, self).serve(BlacknetServerThread)
 
 
     def shutdown(self):
-        super(BlacknetMainServer, self).shutdown()
+        super(BlacknetMasterServer, self).shutdown()
         self.database.disconnect()
 
 

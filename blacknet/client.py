@@ -10,7 +10,7 @@ from .common import *
 
 
 class BlacknetClient(BlacknetSSLInterface):
-    """ Holds all the underlying protocol exchanges with BlacknetMainServer. """
+    """ Holds all the underlying protocol exchanges with BlacknetMasterServer. """
 
 
     def __init__(self, config, logger=None):
@@ -113,7 +113,7 @@ class BlacknetClient(BlacknetSSLInterface):
 
 
     def _connect(self):
-        """ Connect to the BlacknetMainServer (without explicit locking) """
+        """ Connect to the BlacknetMasterServer (without explicit locking) """
 
         tries = BLACKNET_CLIENT_CONN_RETRIES
 

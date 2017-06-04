@@ -23,7 +23,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from .main_server import BlacknetMainServer
+from .master import BlacknetMasterServer
 from .scrubber import BlacknetScrubber
 from .ssh_server import BlacknetSSHServer
 from .updater import BlacknetGeoUpdater
@@ -33,6 +33,6 @@ threadsafety = 1
 
 __version__ = '.'.join(map(str, VERSION))
 __all__ = [
-    'BlacknetMainServer', 'BlacknetScrubber', 'BlacknetSSHServer', 'BlacknetGeoUpdater',
+    'BlacknetMasterServer', 'BlacknetScrubber', 'BlacknetSSHServer', 'BlacknetGeoUpdater',
     'threadsafety', '__version__',
 ]
