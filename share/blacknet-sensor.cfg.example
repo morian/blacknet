@@ -14,13 +14,18 @@ ssh_banner = SSH-2.0-OpenSSH_6.7p1 Debian-5+deb8u3
 ; MainServer to connect to (address:port or unix socket path)
 server = /var/run/blacknet/main.socket
 
+; Client name override (default is to use commonName from cert)
+; This field is mandatory when connecting through local unix socket.
+;name = honeypot00
+
+; SSL parameters bellow are disabled when connecting through local unix socket.
 ; Server certificate hostname for additional security (comment to disable)
 ;server_hostname = maestro
-; Client name override (default is to use commonName from cert)
-;name = honeypot00
 ; Client private key and certificate (all in one file)
 cert = /etc/blacknet/ssl/honeypot00.pem
 ; Certificate authority (used for both clients and servers)
 cafile = /etc/blacknet/ssl/ca.crt
-; Blacknet client log file
+; Blacknet sensor log file
 log_file = /var/log/blacknet/honeypot00.log
+; Blacknet sensor server log level (from emerg (0) to debug (7))
+;log_level = 6

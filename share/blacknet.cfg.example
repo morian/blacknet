@@ -31,8 +31,10 @@ cert = /etc/blacknet/ssl/maestro.pem
 ; Certificate authority (used for both clients and servers)
 cafile = /etc/blacknet/ssl/ca.crt
 
-; Blacknet server log file
+; Blacknet master server log file
 log_file = /var/log/blacknet/blacknet.log
+; Blacknet master server log level (from emerg (0) to debug (7))
+;log_level = 6
 
 ; Extra location for the blacklist file
 ; Blacklist files are checked at /etc/blacknet/blacklist.cfg and ${HOME}/.blacknet/blacklist.cfg
