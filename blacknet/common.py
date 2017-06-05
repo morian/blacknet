@@ -21,6 +21,22 @@ BLACKNET_CONFIG_DIRS = ["/etc/blacknet", os.path.expanduser("~/.blacknet")]
 # General directories to look for blacklist files.
 BLACKNET_BLACKLIST_DIRS = ["/etc/blacknet", os.path.expanduser("~/.blacknet")]
 
+
+# Log levels
+BLACKNET_LOG_EMERG    = 0
+BLACKNET_LOG_ALERT    = 1
+BLACKNET_LOG_CRITICAL = 2
+BLACKNET_LOG_ERROR    = 3
+BLACKNET_LOG_WARNING  = 4
+BLACKNET_LOG_NOTICE   = 5
+BLACKNET_LOG_INFO     = 6
+BLACKNET_LOG_DEBUG    = 7
+
+# Both default log level when configuration is missing
+# and log level when writing log messages with no level specified.
+BLACKNET_LOG_DEFAULT = BLACKNET_LOG_INFO
+
+
 # This is the content of the HELLO string the client is supposed to send
 # to the server instance.
 BLACKNET_HELLO = 'CPE1704TKS'

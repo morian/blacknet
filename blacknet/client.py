@@ -31,9 +31,9 @@ class BlacknetClient(BlacknetSSLInterface):
         self.disconnect()
 
 
-    def log(self, message):
+    def log(self, message, level=BLACKNET_LOG_DEFAULT):
         if self.__logger:
-            self.__logger.write("Honeypot: %s" % message)
+            self.__logger.write("Honeypot: %s" % message, level)
         else:
             sys.stdout.write("%s\n" % message)
             sys.stdout.flush()
@@ -76,7 +76,7 @@ class BlacknetClient(BlacknetSSLInterface):
             try:
                 port = int(addr[1])
             except ValueError as e:
-                self.log("ValueError: %s" % e)
+                self.log("address port: %s" % e, BLACKNET_LOG_ERROR)
         return (address, port)
 
 
@@ -97,9 +97,9 @@ class BlacknetClient(BlacknetSSLInterface):
                 self.__server_socket = self._connect()
                 send_handshake = True
                 if self.__server_error:
-                    self.log("client reconnected successfully")
+                    self.log("client reconnected successfully", BLACKNET_LOG_INFO)
                 else:
-                    self.log("client connected successfully")
+                    self.log("client connected successfully", BLACKNET_LOG_INFO)
                 self.__server_error = False
         except:
             self.__server_error = True
@@ -127,7 +127,7 @@ class BlacknetClient(BlacknetSSLInterface):
                 break
             except socket.error as e:
                 if tries == BLACKNET_CLIENT_CONN_RETRIES and not self.__server_error:
-                    self.log("%s" % e)
+                    self.log("socket error: %s" % e, BLACKNET_LOG_ERROR)
                 tries -= 1
                 if not tries:
                     raise
@@ -178,11 +178,11 @@ class BlacknetClient(BlacknetSSLInterface):
                 for (msgtype, data) in self.__unpacker:
                     # This is the only message type we can receive here.
                     if msgtype == BlacknetMsgType.GOODBYE:
-                        self.log("client received goodbye acknowledgement.")
+                        self.log("client received goodbye acknowledgement.", BLACKNET_LOG_DEBUG)
             else:
-                self.log("client did not receive goodbye from server, quitting.")
+                self.log("client did not receive goodbye from server, quitting.", BLACKNET_LOG_INFO)
         except Exception as e:
-            self.log("client error: %s" % e)
+            self.log("client error: %s" % e, BLACKNET_LOG_ERROR)
 
 
     def _send(self, msgtype, message=None):

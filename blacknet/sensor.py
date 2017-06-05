@@ -124,28 +124,28 @@ class BlacknetSensor(BlacknetServer):
 
         if not os.path.exists(prvfile):
             try:
-                self.log("generating %s" % prvfile)
+                self.log("generating %s" % prvfile, BLACKNET_LOG_DEFAULT)
                 prv = RSAKey.generate(bits=1024)
                 prv.write_private_key_file(prvfile)
             except Exception as e:
-                self.log("error: %s" % e)
+                self.log("error: %s" % e, BLACKNET_LOG_CRITICAL)
                 raise
 
         if not os.path.exists(pubfile):
             try:
-                self.log("generating %s" % pubfile)
+                self.log("generating %s" % pubfile, BLACKNET_LOG_DEFAULT)
                 pub = RSAKey(filename=prvfile)
                 with open(pubfile, 'w') as f:
                     f.write("%s %s" % (pub.get_name(), pub.get_base64()))
             except Exception as e:
-                self.log("error: %s" % e)
+                self.log("error: %s" % e, BLACKNET_LOG_CRITICAL)
                 raise
 
         if not prv:
             prv = RSAKey(filename=prvfile)
         self.ssh_host_key = prv
         self.ssh_host_hash = paramiko.py3compat.u(hexlify(prv.get_fingerprint()))
-        self.log("SSH fingerprint: %s" % self.ssh_host_hash)
+        self.log("SSH fingerprint: %s" % self.ssh_host_hash, BLACKNET_LOG_INFO)
 
 
     def reload(self):
@@ -186,7 +186,7 @@ class BlacknetSensorThread(Thread):
 
 
     def run(self):
-        self.log("SSH: starting session")
+        self.log("SSH: starting session", BLACKNET_LOG_DEBUG)
 
         self.__client.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.__client.settimeout(None)
@@ -206,20 +206,21 @@ class BlacknetSensorThread(Thread):
             t.start_server(server=ssh_serv)
             t.join()
         except Exception as e:
-            self.log("SSH: %s" % e)
+            # Clients can mess a log here, make sure to consider these as debug.
+            self.log("SSH: %s" % e, BLACKNET_LOG_DEBUG)
         self.disconnect()
 
 
-    def log(self, message):
+    def log(self, message, level=BLACKNET_LOG_DEFAULT):
         if self.__bns._logger:
             peername = "%s" % (self.__peer_ip)
-            self.__bns._logger.write("%s: %s" % (peername, message))
+            self.__bns._logger.write("%s: %s" % (peername, message), level)
 
 
     def disconnect(self):
         self.__connection_lock.acquire()
         if self.__transport:
-            self.log("SSH: stopping session")
+            self.log("SSH: stopping session", BLACKNET_LOG_DEBUG)
             self.__transport.close()
             self.__transport = None
             self.__client = None

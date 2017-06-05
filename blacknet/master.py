@@ -117,7 +117,7 @@ class BlacknetServerThread(Thread):
         self.__client = client
 
         self.name = self.peername
-        self.log("starting session (SSL: %s)" % self.__use_ssl)
+        self.log("starting session (SSL: %s)" % self.__use_ssl, BLACKNET_LOG_INFO)
 
 
     def __del__(self):
@@ -127,7 +127,7 @@ class BlacknetServerThread(Thread):
     def disconnect(self):
         self.__connect_lock.acquire()
         if self.__client:
-            self.log("stopping session")
+            self.log("stopping session", BLACKNET_LOG_INFO)
             try:
                 self.__client.shutdown(socket.SHUT_RDWR)
             except socket.error:
@@ -158,7 +158,7 @@ class BlacknetServerThread(Thread):
             try:
                 buf = client.recv(1024**2)
             except socket.error as e:
-                self.log("socket error: %s" % e)
+                self.log("socket error: %s" % e, BLACKNET_LOG_WARNING)
                 break
 
             if not buf:
@@ -186,10 +186,10 @@ class BlacknetServerThread(Thread):
         return self.__cursor
 
 
-    def log(self, message):
+    def log(self, message, level=BLACKNET_LOG_DEFAULT):
         if self.__logger:
             peername = "%s (%s)" % (self.name, self.__peer_ip)
-            self.__logger.write("%s: %s" % (peername, message))
+            self.__logger.write("%s: %s" % (peername, message), level)
 
 
     def __mysql_retry(self, function, *args):
@@ -199,7 +199,7 @@ class BlacknetServerThread(Thread):
             except MySQLError as e:
                 if self.__mysql_error != e.args[0]:
                     self.__mysql_error = e.args[0]
-                    self.log("MySQL[%u]: %s" % e.args)
+                    self.log("MySQL: %s" % e, BLACKNET_LOG_WARNING)
 
                 self.__cursor = None
                 self.__database.disconnect()
@@ -208,11 +208,12 @@ class BlacknetServerThread(Thread):
 
     ## -- Message handling functions -- ##
     def handle_unknown(self, msgtype, data):
-        self.log("unknown msgtype %u" % msgtype)
+        self.log("unknown msgtype %u" % msgtype, BLACKNET_LOG_ERROR)
 
     def handle_hello(self, data):
         if data != BLACKNET_HELLO:
-            self.log("client reported buggy hello (got %s, expected %s)" % (data, BLACKNET_HELLO))
+            self.log("client reported buggy hello (got %s, expected %s)" % (data, BLACKNET_HELLO),
+                     BLACKNET_LOG_ERROR)
 
     def handle_goodbye(self, data):
         client = self.__client
@@ -222,7 +223,7 @@ class BlacknetServerThread(Thread):
 
     def handle_client_name(self, data):
         if data != self.name:
-            self.log("changing client name to %s" % data)
+            self.log("changing client name to %s" % data, BLACKNET_LOG_INFO)
             self.name = data
 
 
@@ -238,7 +239,7 @@ class BlacknetServerThread(Thread):
             if res is None:
                 locid = cursor.get_locid(atk_id)
                 if not locid:
-                    self.log("no gelocation for client %s" % ip)
+                    self.log("no gelocation for client %s" % ip, BLACKNET_LOG_INFO)
                     (first_seen, last_seen) = (None, None)
                 else:
                     dns = blacknet_gethostbyaddr(ip)
@@ -319,7 +320,7 @@ class BlacknetServerThread(Thread):
         user = data['user']
         if self.__blacklist.has(self.peername, user):
             msg = 'blacklisted user %s from %s using %s' % (user, data['client'], data['version'])
-            self.log(msg)
+            self.log(msg, BLACKNET_LOG_DEFAULT)
             raise Exception(msg)
 
     def __handle_ssh_common(self, data):
@@ -338,7 +339,7 @@ class BlacknetServerThread(Thread):
             (atk_id, ses_id, att_id) = self.__handle_ssh_common(data)
 
         except Exception as e:
-            self.log("credential error: %s" % e)
+            self.log("credential error: %s" % e, BLACKNET_LOG_INFO)
             self.__dropped_count += 1
         else:
             self.__attempt_count += 1
@@ -349,7 +350,7 @@ class BlacknetServerThread(Thread):
             (atk_id, ses_id, att_id) = self.__handle_ssh_common(data)
             key_id = self.__mysql_retry(self.__add_ssh_pubkey, data, att_id)
         except Exception as e:
-            self.log("pubkey error: %s" % e)
+            self.log("pubkey error: %s" % e, BLACKNET_LOG_INFO)
             self.__dropped_count += 1
         else:
             self.__attempt_count += 1

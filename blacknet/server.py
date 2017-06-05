@@ -41,7 +41,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
         BlacknetConfigurationInterface.__init__(self, config, role)
 
         self._logger = BlacknetLogger(role, config)
-        self.log("== %s is starting" % self.__class__.__name__)
+        self.log("== %s is starting" % self.__class__.__name__, BLACKNET_LOG_INFO)
 
         self._listen_start_stop()
 
@@ -60,7 +60,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
                     mode_string = self.get_config('listen_mode')
                     mode = int(mode_string, 8)
                 except ValueError as e:
-                    self.log("ValueError: %s" % e)
+                    self.log("socket mode: %s" % e, BLACKNET_LOG_ERROR)
             self.__socket_permissions = (owner, group, mode)
         return self.__socket_permissions
 
@@ -87,7 +87,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
                         try:
                             port = int(addr[1])
                         except ValueError as e:
-                            self.log("ValueError: %s" % e)
+                            self.log("address port: %s" % e, BLACKNET_LOG_ERROR)
                     listen.append((address, port))
             self.__listen_interfaces = listen
         return self.__listen_interfaces
@@ -95,15 +95,15 @@ class BlacknetServer(BlacknetConfigurationInterface):
 
 
 
-    def log(self, message):
+    def log(self, message, level=BLACKNET_LOG_DEFAULT):
         if self._logger:
-            self._logger.write(message)
+            self._logger.write(message, level)
 
 
     def reload(self):
         """ reload instance configuration """
 
-        self.log("reloading configuration")
+        self.log("reloading configuration", BLACKNET_LOG_INFO)
         BlacknetConfigurationInterface.reload(self)
         self._logger.reload()
 
@@ -161,7 +161,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
         sock.listen(5)
 
         self._interfaces[interface] = sock
-        self.log("Starting interface %s" % name)
+        self.log("Starting interface %s" % name, BLACKNET_LOG_INFO)
 
 
     def _listen_stop(self, interface):
@@ -170,7 +170,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
             unix_socket = (sock.family == socket.AF_UNIX)
             name = interface if unix_socket else "%s:%u" % interface
 
-            self.log("Stopping interface %s" % name)
+            self.log("Stopping interface %s" % name, BLACKNET_LOG_INFO)
             sock.shutdown(socket.SHUT_RDWR)
             sock.close()
 
@@ -224,14 +224,14 @@ class BlacknetServer(BlacknetConfigurationInterface):
             pass
         except socket.error as e:
             if e.errno != errno.EINTR:
-                self.log("socket error: %s" % e)
+                self.log("socket error: %s" % e, BLACKNET_LOG_ERROR)
             raise
         except select.error as e:
             error = e.args[0]
             if error != errno.EINTR:
-                self.log("select error: %s" % e)
+                self.log("select error: %s" % e, BLACKNET_LOG_ERROR)
         except Exception as e:
-            self.log("error: %s" % e)
+            self.log("error: %s" % e, BLACKNET_LOG_ERROR)
 
 
     def shutdown(self):
@@ -239,6 +239,6 @@ class BlacknetServer(BlacknetConfigurationInterface):
         self.__listen_interfaces = []
         self._listen_start_stop()
         self._threads_killer()
-        self.log("== %s stopped" % self.__class__.__name__)
+        self.log("== %s stopped" % self.__class__.__name__, BLACKNET_LOG_INFO)
         self._logger.close()
 

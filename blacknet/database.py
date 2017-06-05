@@ -2,7 +2,9 @@ import pymysql
 import warnings
 
 from threading import Lock
+
 from .config import BlacknetConfigurationInterface
+from .common import *
 
 # Forces MySQL to shut up about binlog format
 warnings.filterwarnings('ignore', category=pymysql.Warning)
@@ -24,9 +26,9 @@ class BlacknetDatabaseCursor(object):
             self.__cursor.close()
 
 
-    def log(self, message):
+    def log(self, message, level=BLACKNET_LOG_DEFAULT):
         if self.__logger:
-            self.__logger.write(message)
+            self.__logger.write(message, level)
 
 
     def __database_reload(self):
@@ -244,9 +246,9 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
         return self.__database
 
 
-    def log(self, message):
+    def log(self, message, level=BLACKNET_LOG_DEFAULT):
         if self.__logger:
-            self.__logger.write(message)
+            self.__logger.write(message, level)
 
 
     def reload(self):
@@ -273,9 +275,9 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
                     'charset': 'utf8',
                 }
                 self.__database = pymysql.connect(**kwargs)
-                self.log("pymysql: database connection successful")
+                self.log("pymysql: database connection successful", BLACKNET_LOG_INFO)
         except Exception as e:
-            self.log('database: %s' % e)
+            self.log('database: %s' % e, BLACKNET_LOG_ERROR)
         finally:
             self.__connection_lock.release()
 
