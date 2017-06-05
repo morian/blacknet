@@ -172,7 +172,7 @@ class BlacknetClient(BlacknetSSLInterface):
             sock = self._server_socket
             acceptable = select.select([sock], [], [], BLACKNET_CLIENT_GOODBYE_TIMEOUT)
             if acceptable[0]:
-                buf = self._server_socket.recv()
+                buf = self._server_socket.recv(4096)
                 self.__unpacker.feed(buf)
 
                 for (msgtype, data) in self.__unpacker:
