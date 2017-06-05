@@ -188,8 +188,7 @@ class BlacknetSensorThread(Thread):
     def run(self):
         self.log("SSH: starting session", BLACKNET_LOG_DEBUG)
 
-        self.__client.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        self.__client.settimeout(None)
+        self.__client.settimeout(BLACKNET_SSH_CLIENT_TIMEOUT)
 
         t = paramiko.Transport(self.__client)
         t.local_version = self.__bns.ssh_banner

@@ -211,6 +211,7 @@ class BlacknetServerThread(Thread):
         self.log("unknown msgtype %u" % msgtype, BLACKNET_LOG_ERROR)
 
     def handle_hello(self, data):
+        # TODO: take actions here when hello banner does not match.
         if data != BLACKNET_HELLO:
             self.log("client reported buggy hello (got %s, expected %s)" % (data, BLACKNET_HELLO),
                      BLACKNET_LOG_ERROR)
