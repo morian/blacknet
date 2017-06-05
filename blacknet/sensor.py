@@ -123,15 +123,23 @@ class BlacknetSensor(BlacknetServer):
         prv = None
 
         if not os.path.exists(prvfile):
-            self.log("Generating %s" % prvfile)
-            prv = RSAKey.generate(bits=1024)
-            prv.write_private_key_file(prvfile)
+            try:
+                self.log("generating %s" % prvfile)
+                prv = RSAKey.generate(bits=1024)
+                prv.write_private_key_file(prvfile)
+            except Exception as e:
+                self.log("error: %s" % e)
+                raise
 
         if not os.path.exists(pubfile):
-            self.log("Generating %s" % pubfile)
-            pub = RSAKey(filename=prvfile)
-            with open(pubfile, 'w') as f:
-                f.write("%s %s" % (pub.get_name(), pub.get_base64()))
+            try:
+                self.log("generating %s" % pubfile)
+                pub = RSAKey(filename=prvfile)
+                with open(pubfile, 'w') as f:
+                    f.write("%s %s" % (pub.get_name(), pub.get_base64()))
+            except Exception as e:
+                self.log("error: %s" % e)
+                raise
 
         if not prv:
             prv = RSAKey(filename=prvfile)
