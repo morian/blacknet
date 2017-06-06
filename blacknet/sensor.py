@@ -197,7 +197,6 @@ class BlacknetSensorThread(Thread):
         except:
             pass
         t.add_server_key(self.__bns.ssh_host_key)
-        t.set_keepalive(10)
         self.__transport = t
 
         ssh_serv = BlacknetSSHSession(t, self.__bns.blacknet)
