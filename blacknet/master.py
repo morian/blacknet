@@ -123,6 +123,7 @@ class BlacknetServerThread(Thread):
 
     def __del__(self):
         self.disconnect()
+        self.database.disconnect()
 
 
     def disconnect(self):
@@ -194,6 +195,8 @@ class BlacknetServerThread(Thread):
 
 
     def __mysql_retry(self, function, *args):
+        saved_exception = None
+
         for retry in range(BLACKNET_DATABASE_RETRIES):
             try:
                 return function(*args)
@@ -204,7 +207,8 @@ class BlacknetServerThread(Thread):
 
                 self.__cursor = None
                 self.database.disconnect()
-                raise
+                saved_exception = e
+        raise saved_exception
 
 
     ## -- Message handling functions -- ##

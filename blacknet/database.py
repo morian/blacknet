@@ -26,12 +26,6 @@ class BlacknetDatabaseCursor(object):
             self.__cursor.close()
 
 
-    def __database_reload(self):
-        self.__cursor.close()
-        self.__bnd.disconnect()
-        self.__cursor = self.__bnd.database.cursor()
-
-
     def execute(self, query, args=None):
         """ Execute generic queries to the database. """
         return self.__cursor.execute(query, args)
@@ -254,9 +248,10 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
 
     def reload(self):
         params = self._get_connection_parameters()
+
         if params != self.connection_parameters:
-            self.reconnect(params)
             self.__connection_parameters = params
+            self.disconnect()
 
 
     def connect(self, params=None):
@@ -293,11 +288,6 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
                 pass
             self.__database = None
         self.__connection_lock.release()
-
-
-    def reconnect(self, params=None):
-        self.disconnect()
-        self.connect(params)
 
 
     def escape_string(self, string):
