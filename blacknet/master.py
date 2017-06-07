@@ -23,7 +23,6 @@ class BlacknetMasterServer(BlacknetServer, BlacknetSSLInterface):
 
         self.__test_mode = None
         self.__session_interval = None
-        self.database = BlacknetDatabase(self.config, self.logger)
         self.blacklist = BlacknetBlacklist(self.config)
 
 
@@ -58,8 +57,11 @@ class BlacknetMasterServer(BlacknetServer, BlacknetSSLInterface):
         super(BlacknetMasterServer, self).reload()
         self.__test_mode = None
         self.__session_interval = None
-        self.database.reload()
         self.blacklist.reload()
+
+        # Reload database information.
+        for thr in self._threads:
+            thr.database.reload()
 
 
     def serve(self):
@@ -70,7 +72,6 @@ class BlacknetMasterServer(BlacknetServer, BlacknetSSLInterface):
 
     def shutdown(self):
         super(BlacknetMasterServer, self).shutdown()
-        self.database.disconnect()
 
 
 class BlacknetServerThread(Thread):
@@ -89,10 +90,10 @@ class BlacknetServerThread(Thread):
         }
         self.handler = handler
 
+        self.database = BlacknetDatabase(bns.config, bns.logger)
         self.__blacklist = bns.blacklist
         self.__client = None
         self.__connect_lock = Lock()
-        self.__database = bns.database
         self.__cursor = None
         self.__logger = bns.logger
         self.__mysql_error = 0
@@ -173,14 +174,14 @@ class BlacknetServerThread(Thread):
 
                 if msgtype == BlacknetMsgType.GOODBYE:
                     running = False
-            self.__database.commit()
+            self.database.commit()
         self.disconnect()
 
 
     @property
     def cursor(self):
         if not self.__cursor:
-            cursor = self.__database.cursor()
+            cursor = self.database.cursor()
             self.__mysql_error = 0
             self.__cursor = cursor
         return self.__cursor
@@ -202,7 +203,7 @@ class BlacknetServerThread(Thread):
                     self.log("MySQL: %s" % e, BLACKNET_LOG_WARNING)
 
                 self.__cursor = None
-                self.__database.disconnect()
+                self.database.disconnect()
                 raise
 
 
