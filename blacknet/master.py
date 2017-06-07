@@ -7,7 +7,7 @@ from msgpack import Unpacker, Packer
 from threading import Lock, Thread
 
 from .config import BlacknetBlacklist
-from .ssl_interface import BlacknetSSLInterface
+from .sslif import BlacknetSSLInterface
 from .database import BlacknetDatabase
 from .server import BlacknetServer
 from .common import *

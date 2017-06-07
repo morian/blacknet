@@ -5,7 +5,7 @@ import sys
 from msgpack import Unpacker, Packer
 from threading import Lock, RLock
 
-from .ssl_interface import BlacknetSSLInterface
+from .sslif import BlacknetSSLInterface
 from .common import *
 
 
