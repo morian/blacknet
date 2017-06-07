@@ -46,10 +46,12 @@ if __name__ == '__main__':
     signal(SIGTERM, blacknet_quit)
     signal(SIGHUP, blacknet_reload)
 
+    bns = BlacknetMasterServer(options.config)
+
+    # Write PID after initialization
     if options.pidfile:
         blacknet_write_pid(options.pidfile)
 
-    bns = BlacknetMasterServer(options.config)
     while running:
         if update:
             bns.reload()

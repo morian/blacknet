@@ -58,10 +58,12 @@ if __name__ == '__main__':
     signal(SIGTERM, blacknet_quit)
     signal(SIGHUP, blacknet_reload)
 
+    bns = BlacknetSensor(options.config)
+
+    # Write PID after initialization
     if options.pidfile:
         blacknet_write_pid(options.pidfile)
 
-    bns = BlacknetSensor(options.config)
     while running:
         if update:
             bns.reload()
