@@ -26,11 +26,6 @@ class BlacknetDatabaseCursor(object):
             self.__cursor.close()
 
 
-    def log(self, message, level=BLACKNET_LOG_DEFAULT):
-        if self.__logger:
-            self.__logger.write(message, level)
-
-
     def __database_reload(self):
         self.__cursor.close()
         self.__bnd.disconnect()
@@ -250,6 +245,12 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
         if self.__logger:
             self.__logger.write(message, level)
 
+    def log_error(self, message):
+        self.log(message, BLACKNET_LOG_ERROR)
+
+    def log_info(self, message):
+        self.log(message, BLACKNET_LOG_INFO)
+
 
     def reload(self):
         params = self._get_connection_parameters()
@@ -275,9 +276,9 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
                     'charset': 'utf8',
                 }
                 self.__database = pymysql.connect(**kwargs)
-                self.log("pymysql: database connection successful", BLACKNET_LOG_INFO)
+                self.log_info("pymysql: database connection successful")
         except Exception as e:
-            self.log('database: %s' % e, BLACKNET_LOG_ERROR)
+            self.log_error('database: %s' % e)
         finally:
             self.__connection_lock.release()
 

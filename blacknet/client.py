@@ -30,13 +30,21 @@ class BlacknetClient(BlacknetSSLInterface):
     def __del__(self):
         self.disconnect()
 
-
     def log(self, message, level=BLACKNET_LOG_DEFAULT):
         if self.__logger:
             self.__logger.write("Honeypot: %s" % message, level)
         else:
             sys.stdout.write("%s\n" % message)
             sys.stdout.flush()
+
+    def log_error(self, message):
+        self.log(message, BLACKNET_LOG_ERROR)
+
+    def log_info(self, message):
+        self.log(message, BLACKNET_LOG_INFO)
+
+    def log_debug(self, message):
+        self.log(message, BLACKNET_LOG_DEBUG)
 
 
     @property
@@ -76,7 +84,7 @@ class BlacknetClient(BlacknetSSLInterface):
             try:
                 port = int(addr[1])
             except ValueError as e:
-                self.log("address port: %s" % e, BLACKNET_LOG_ERROR)
+                self.log_error("address port: %s" % e)
         return (address, port)
 
 
@@ -97,9 +105,9 @@ class BlacknetClient(BlacknetSSLInterface):
                 self.__server_socket = self._connect()
                 send_handshake = True
                 if self.__server_error:
-                    self.log("client reconnected successfully", BLACKNET_LOG_INFO)
+                    self.log_info("client reconnected successfully")
                 else:
-                    self.log("client connected successfully", BLACKNET_LOG_INFO)
+                    self.log_info("client connected successfully")
                 self.__server_error = False
         except:
             self.__server_error = True
@@ -127,7 +135,7 @@ class BlacknetClient(BlacknetSSLInterface):
                 break
             except socket.error as e:
                 if tries == BLACKNET_CLIENT_CONN_RETRIES and not self.__server_error:
-                    self.log("socket error: %s" % e, BLACKNET_LOG_ERROR)
+                    self.log_error("socket error: %s" % e)
                 tries -= 1
                 if not tries:
                     raise
@@ -178,11 +186,11 @@ class BlacknetClient(BlacknetSSLInterface):
                 for (msgtype, data) in self.__unpacker:
                     # This is the only message type we can receive here.
                     if msgtype == BlacknetMsgType.GOODBYE:
-                        self.log("client received goodbye acknowledgement.", BLACKNET_LOG_DEBUG)
+                        self.log_debug("client received goodbye acknowledgement.")
             else:
-                self.log("client did not receive goodbye from server, quitting.", BLACKNET_LOG_INFO)
+                self.log_info("client did not receive goodbye from server, quitting.")
         except Exception as e:
-            self.log("client error: %s" % e, BLACKNET_LOG_ERROR)
+            self.log_error("goodbye error: %s" % e)
 
 
     def _send(self, msgtype, message=None):
@@ -200,13 +208,13 @@ class BlacknetClient(BlacknetSSLInterface):
         self._send(BlacknetMsgType.GOODBYE)
 
     def _send_retry(self, msgtype, message, tries=2):
-        while tries:
+        while tries > 0:
             self.__send_lock.acquire()
             try:
                 self._send(msgtype, message)
                 tries = 0
-            except socket.error as e:
-                print("%s" % e)
+            except Exception as e:
+                self.log_error("send error: %s" % e)
                 self.disconnect(goodbye=False)
                 tries -= 1
             finally:

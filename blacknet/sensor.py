@@ -24,6 +24,9 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         self.__client_version = None
         self.__peer_name = None
         self.__allowed_auths = ['publickey', 'password']
+        self.auth_failed_count = 0
+        # This needs to be a user-configured value at some point.
+        self.auth_failed_limit = BLACKNET_SSH_AUTH_RETRIES
         self.blacknet = blacknet
 
 
@@ -53,11 +56,17 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         obj['time'] = int(time.time())
         return obj
 
+    def __auth_failed_inc(self):
+        # reset the auth_fail counter to be able to handle faster retries
+        self.auth_failed_count += 1
+
+        if self.auth_failed_count >= self.auth_failed_limit:
+            self.__transport.auth_handler.auth_fail_count = 1000
+        else:
+            self.__transport.auth_handler.auth_fail_count = 0
+
 
     def check_auth_password(self, username, password):
-        # reset the auth_fail counter to be able to handle faster retries
-        self.__transport.auth_handler.auth_fail_count = 0
-
         try:
             obj = self.__auth_common_obj(username)
             obj['passwd'] = blacknet_ensure_unicode(password)
@@ -65,6 +74,7 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         except:
             pass
 
+        self.__auth_failed_inc()
         return AUTH_FAILED
 
 
@@ -82,6 +92,7 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         except:
             pass
 
+        self.__auth_failed_inc()
         return AUTH_FAILED
 
 
@@ -124,28 +135,28 @@ class BlacknetSensor(BlacknetServer):
 
         if not os.path.exists(prvfile):
             try:
-                self.log("generating %s" % prvfile, BLACKNET_LOG_DEFAULT)
+                self.log_info("generating %s" % prvfile)
                 prv = RSAKey.generate(bits=1024)
                 prv.write_private_key_file(prvfile)
             except Exception as e:
-                self.log("error: %s" % e, BLACKNET_LOG_CRITICAL)
+                self.log_critical("error: %s" % e)
                 raise
 
         if not os.path.exists(pubfile):
             try:
-                self.log("generating %s" % pubfile, BLACKNET_LOG_DEFAULT)
+                self.log_info("generating %s" % pubfile)
                 pub = RSAKey(filename=prvfile)
                 with open(pubfile, 'w') as f:
                     f.write("%s %s" % (pub.get_name(), pub.get_base64()))
             except Exception as e:
-                self.log("error: %s" % e, BLACKNET_LOG_CRITICAL)
+                self.log_critical("error: %s" % e)
                 raise
 
         if not prv:
             prv = RSAKey(filename=prvfile)
         self.ssh_host_key = prv
         self.ssh_host_hash = paramiko.py3compat.u(hexlify(prv.get_fingerprint()))
-        self.log("SSH fingerprint: %s" % self.ssh_host_hash, BLACKNET_LOG_INFO)
+        self.log_info("SSH fingerprint: %s" % self.ssh_host_hash)
 
 
     def reload(self):
@@ -179,6 +190,7 @@ class BlacknetSensorThread(Thread):
         self.__peer_ip = peername[0] if peername else "local"
         self.__client = client
         self.__transport = None
+        self.__auth_retries = 0
 
 
     def __del__(self):
@@ -186,7 +198,7 @@ class BlacknetSensorThread(Thread):
 
 
     def run(self):
-        self.log("SSH: starting session", BLACKNET_LOG_DEBUG)
+        self.log_debug("SSH: starting session")
 
         self.__client.settimeout(BLACKNET_SSH_CLIENT_TIMEOUT)
 
@@ -199,13 +211,17 @@ class BlacknetSensorThread(Thread):
         t.add_server_key(self.__bns.ssh_host_key)
         self.__transport = t
 
-        ssh_serv = BlacknetSSHSession(t, self.__bns.blacknet)
+        ssh_server = BlacknetSSHSession(t, self.__bns.blacknet)
         try:
-            t.start_server(server=ssh_serv)
+            t.start_server(server=ssh_server)
+            # TODO: join with a timeout - This may require providing a valid event here.
+            # > ssh_server.stop_thread()
             t.join()
         except Exception as e:
-            # Clients can mess a log here, make sure to consider these as debug.
-            self.log("SSH: %s" % e, BLACKNET_LOG_DEBUG)
+            # For undefined reason we had a lot of empty errors
+            if len(e):
+                self.log_debug("SSH: %s" % e)
+        self.__auth_retries = ssh_server.auth_failed_count
         self.disconnect()
 
 
@@ -214,11 +230,20 @@ class BlacknetSensorThread(Thread):
             peername = "%s" % (self.__peer_ip)
             self.__bns._logger.write("%s: %s" % (peername, message), level)
 
+    def log_error(self, message):
+        self.log(message, BLACKNET_LOG_ERROR)
+
+    def log_info(self, message):
+        self.log(message, BLACKNET_LOG_INFO)
+
+    def log_debug(self, message):
+        self.log(message, BLACKNET_LOG_DEBUG)
+
 
     def disconnect(self):
         self.__connection_lock.acquire()
         if self.__transport:
-            self.log("SSH: stopping session", BLACKNET_LOG_DEBUG)
+            self.log_debug("SSH: stopping session (%u failed retries)" % self.__auth_retries)
             self.__transport.close()
             self.__transport = None
             self.__client = None
