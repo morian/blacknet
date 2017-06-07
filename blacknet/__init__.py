@@ -28,7 +28,7 @@ from .scrubber import BlacknetScrubber
 from .sensor import BlacknetSensor
 from .updater import BlacknetGeoUpdater
 
-VERSION = (2, 0, 5, None)
+VERSION = (2, 0, 6, None)
 threadsafety = 1
 
 __version__ = '.'.join(map(str, VERSION))
