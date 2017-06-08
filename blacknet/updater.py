@@ -4,12 +4,17 @@ import os
 import shutil
 import sys
 import tempfile
-import urllib
 import zipfile
 
 
 from .config import BlacknetConfig, BlacknetConfigurationInterface
 from .database import BlacknetDatabase
+
+try:
+    from urllib import urlopen
+except ImportError:
+    from urllib.request import urlopen
+
 
 GEOLITE_CSV_URL="https://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip"
 
@@ -78,7 +83,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
     def fetch_zip(self):
         if not self.test_mode:
             zipf = open("%s/geolitecity.zip" % self.dirname, 'wb')
-            res = urllib.urlopen(GEOLITE_CSV_URL)
+            res = urlopen(GEOLITE_CSV_URL)
 
             content = res.read()
             zipf.write(content)
