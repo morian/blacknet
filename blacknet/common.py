@@ -61,6 +61,8 @@ BLACKNET_SSH_CLIENT_TIMEOUT = 30   # SSH client socket timeout
 BLACKNET_CLIENT_GOODBYE_TIMEOUT = 5.0
 BLACKNET_CLIENT_CONN_RETRIES = 3
 BLACKNET_DATABASE_RETRIES = 2
+# Stands for "Other country" in geolite-city database.
+BLACKNET_DEFAULT_LOCID = 1
 
 
 # This is the actual list of supported ciphers for SSL

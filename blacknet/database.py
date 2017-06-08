@@ -122,6 +122,7 @@ class BlacknetDatabaseCursor(object):
         res = self.execute(query)
         if res:
             return self.__cursor.fetchone()[0]
+        return BLACKNET_DEFAULT_LOCID
 
     # In use for geolocation updater
     def truncate(self, table):
@@ -183,7 +184,7 @@ class BlacknetDatabaseCursor(object):
         return []
 
     def get_attackers_location(self):
-        query = 'SELECT id, locId FROM attackers;'
+        query = 'SELECT id, locId FROM attackers ORDER BY id;'
         res = self.execute(query)
         if res:
             return self.fetchall()

@@ -80,7 +80,12 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
                 self.log_error("[-] No match in geolocation database for IP %s." % ip)
                 continue
 
-            (first_seen, last_seen, count) = cursor.recompute_attacker_info(atk_id)
+            res = cursor.recompute_attacker_info(atk_id)
+            if res is None:
+                self.log_error("[-] No recompute information for ip %s (id: %s)." % (ip, atk_id))
+                continue
+
+            (first_seen, last_seen, count) = res
             dns = blacknet_gethostbyaddr(ip)
             self.log_action("[+] Fixing attacker %s (%s)" % (ip, dns))
 
