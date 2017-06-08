@@ -76,6 +76,7 @@ BLACKNET_CIPHERS = [
     "ECDHE-ECDSA-AES128-SHA256",
     "DHE-RSA-AES256-GCM-SHA384",
     "DHE-RSA-AES256-SHA256",
+    "AES256-GCM-SHA384",
 ]
 
 def blacknet_ensure_unicode(message):
