@@ -42,6 +42,8 @@ class BlacknetSSLInterface(BlacknetConfigurationInterface):
             ssl_context.set_ciphers(":".join(BLACKNET_CIPHERS))
             if hostname:
                 ssl_context.check_hostname = True
+            else:
+                ssl_context.check_hostname = False
             self.__ssl_context = ssl_context
         return self.__ssl_context
 
