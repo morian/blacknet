@@ -235,7 +235,6 @@ class BlacknetServer(BlacknetConfigurationInterface):
         except socket.error as e:
             if e.errno != errno.EINTR:
                 self.log_error("socket error: %s" % e)
-            raise
         except select.error as e:
             error = e.args[0]
             if error != errno.EINTR:
