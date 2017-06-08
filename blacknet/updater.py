@@ -28,24 +28,27 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
     def __init__(self, cfg_file=None):
         """ load configuration file and database parameters """
+        self.__database = None
+        self.__dirname = None
+        self.__filepath = {}
+        self.__test_mode = None
+
         config = BlacknetConfig()
         config.load(cfg_file)
         BlacknetConfigurationInterface.__init__(self, config, 'server')
 
         self.__database = BlacknetDatabase(config)
-        self.__test_mode = None
-        self.__dirname = None
-        self.__config = config
-        self.__filepath = {}
 
 
     def __del__(self):
         if not self.test_mode:
-            dirname = self.dirname
+            dirname = self.__dirname
         else:
             # That's the ZipDir (extracted)
             dirname = "%s/geolitecity" % self.dirname
-        shutil.rmtree(dirname)
+
+        if dirname:
+            shutil.rmtree(dirname)
         self.__dirname = None
 
 
