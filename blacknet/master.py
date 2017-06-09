@@ -183,7 +183,6 @@ class BlacknetServerThread(Thread):
     def cursor(self):
         if not self.__cursor:
             cursor = self.database.cursor()
-            self.__mysql_error = 0
             self.__cursor = cursor
         return self.__cursor
 
@@ -210,7 +209,9 @@ class BlacknetServerThread(Thread):
 
         for retry in range(BLACKNET_DATABASE_RETRIES):
             try:
-                return function(*args)
+                res = function(*args)
+                self.__mysql_error = 0
+                return res
             except MySQLError as e:
                 if self.__mysql_error != e.args[0]:
                     self.__mysql_error = e.args[0]
