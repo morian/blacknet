@@ -143,7 +143,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
 
     def database_optimize(self):
         if self.__do_fix:
-            for table in ['attackers', 'sessions', 'attempts', 'blocks', 'locations']:
+            for table in ['attackers', 'sessions', 'blocks', 'locations']:
                 self.__timed_check(self.__database_optimize, [table], '%s optimization' % table)
 
     @property
