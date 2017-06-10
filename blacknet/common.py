@@ -55,7 +55,9 @@ BLACKNET_SSH_DEFAULT_PORT = 2200
 BLACKNET_SSH_DEFAULT_LISTEN = "%s:%u" % (BLACKNET_SSH_DEFAULT_ADDRESS, BLACKNET_SSH_DEFAULT_PORT)
 BLACKNET_SSH_DEFAULT_BANNER = 'SSH-2.0-OpenSSH_6.7p1 Debian-5+deb8u3'
 BLACKNET_SSH_AUTH_RETRIES = 42     # Max. number of auth retries before disconnecting.
-BLACKNET_SSH_CLIENT_TIMEOUT = 30   # SSH client socket timeout
+
+# SSH client maximum socket duration
+BLACKNET_SSH_CLIENT_TIMEOUT = (20 * BLACKNET_SSH_AUTH_RETRIES)
 
 # How many times to wait for close acknowledgement.
 BLACKNET_CLIENT_GOODBYE_TIMEOUT = 5.0

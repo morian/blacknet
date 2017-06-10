@@ -169,12 +169,9 @@ class BlacknetServerThread(Thread):
 
             for (msgtype, data) in self.__unpacker:
                 if msgtype in self.handler:
-                    self.handler[msgtype](data)
+                    running = self.handler[msgtype](data)
                 else:
                     self.handle_unknown(msgtype, data)
-
-                if msgtype == BlacknetMsgType.GOODBYE:
-                    running = False
             self.database.commit()
         self.disconnect()
 
@@ -227,21 +224,27 @@ class BlacknetServerThread(Thread):
     def handle_unknown(self, msgtype, data):
         self.log_error("unknown msgtype %u" % msgtype)
 
+
     def handle_hello(self, data):
-        # TODO: take actions here when hello banner does not match.
         if data != BLACKNET_HELLO:
             self.log_error("client reported buggy hello (got %s, expected %s)" % (data, BLACKNET_HELLO))
+            return False
+        return True
+
 
     def handle_goodbye(self, data):
         client = self.__client
         if client:
             data = [BlacknetMsgType.GOODBYE, None]
             client.send(self.__packer.pack(data))
+        return False
+
 
     def handle_client_name(self, data):
         if data != self.name:
             self.log_info("changing client name to %s" % data)
             self.name = data
+        return True
 
 
     def __add_ssh_attacker(self, data):
@@ -358,6 +361,7 @@ class BlacknetServerThread(Thread):
             self.__dropped_count += 1
         else:
             self.__attempt_count += 1
+        return True
 
 
     def handle_ssh_publickey(self, data):
@@ -369,3 +373,4 @@ class BlacknetServerThread(Thread):
             self.__dropped_count += 1
         else:
             self.__attempt_count += 1
+        return True

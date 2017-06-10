@@ -5,7 +5,7 @@ import socket
 import sys
 import time
 
-from threading import Lock, Thread
+from threading import Lock, Thread, Event
 from binascii import hexlify
 from paramiko import RSAKey, ECDSAKey
 from paramiko.ssh_exception import SSHException
@@ -200,7 +200,7 @@ class BlacknetSensorThread(Thread):
     def run(self):
         self.log_debug("SSH: starting session")
 
-        self.__client.settimeout(BLACKNET_SSH_CLIENT_TIMEOUT)
+        self.__client.settimeout(None)
 
         t = paramiko.Transport(self.__client)
         t.local_version = self.__bns.ssh_banner
@@ -213,14 +213,13 @@ class BlacknetSensorThread(Thread):
 
         ssh_server = BlacknetSSHSession(t, self.__bns.blacknet)
         try:
-            t.start_server(server=ssh_server)
-            # TODO: join with a timeout - This may require providing a valid event here.
-            # > ssh_server.stop_thread()
-            t.join()
+            t.start_server(server=ssh_server, event=Event())
+            t.join(BLACKNET_SSH_CLIENT_TIMEOUT)
+            if t.is_alive():
+                ssh_server.stop_thread()
+                t.join()
         except Exception as e:
-            # For undefined reason we had a lot of empty errors
-            if len(e):
-                self.log_debug("SSH: %s" % e)
+            self.log_debug("SSH: %s" % e)
         self.__auth_retries = ssh_server.auth_failed_count
         self.disconnect()
 
