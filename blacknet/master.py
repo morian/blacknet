@@ -158,7 +158,7 @@ class BlacknetServerThread(Thread):
 
         while running:
             try:
-                buf = client.recv(1024**2)
+                buf = client.recv(8192)
             except socket.error as e:
                 self.log_warning("socket error: %s" % e)
                 break
