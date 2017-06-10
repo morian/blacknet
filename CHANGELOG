@@ -1,5 +1,12 @@
 # Blacknet changelog
 
+## [2.0.7] - 2017-06-10
+- Harden communications between master and sensors
+- Fix log verbosity on failed connections
+- Add systemd example service scripts
+- Fix updater script for python3
+- Harden scrubber for `corrupted` databases
+
 ## [2.0.6] - 2017-06-07
 - Work around hung threads
 - Fix thread unsafety on database connections
