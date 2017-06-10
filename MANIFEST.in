@@ -4,3 +4,4 @@ include share/blacknet.cfg.example
 include share/blacknet-sensor.cfg.example
 include share/blacklist.cfg.example
 include share/blacknet-install.sql
+include share/systemd/*

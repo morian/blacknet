@@ -1,0 +1,14 @@
+[Unit]
+Description=Blacknet honeypot sensor (%I)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/blacknet-sensor --config /etc/blacknet/%i.cfg
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-abnormal
+User=blacknet
+Group=blacknet
+
+[Install]
+WantedBy=multi-user.target

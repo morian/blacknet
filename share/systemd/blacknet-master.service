@@ -1,0 +1,11 @@
+[Unit]
+Description=Blacknet master server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/blacknet-master --config /etc/blacknet/blacknet.cfg
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-abnormal
+User=blacknet
+Group=blacknet
