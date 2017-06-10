@@ -161,7 +161,6 @@ class BlacknetClient(BlacknetSSLInterface):
                 pass
             self.__server_socket.close()
             self.__server_socket = None
-            self.__server_error = False
         self.__connect_lock.release()
 
 
@@ -223,7 +222,6 @@ class BlacknetClient(BlacknetSSLInterface):
                 self._send(msgtype, message)
                 tries = 0
             except Exception as e:
-                self.log_error("send error: %s" % e)
                 self.disconnect(goodbye=False)
                 tries -= 1
             finally:
