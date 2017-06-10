@@ -82,7 +82,6 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
 
             res = cursor.recompute_attacker_info(atk_id)
             if res is None:
-                self.log_error("[-] No recompute information for ip %s (id: %s)." % (ip, atk_id))
                 continue
 
             (first_seen, last_seen, count) = res
