@@ -308,6 +308,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
                          % (where, self.__database.escape_string(target))
 
             # day of week.
+            time_start = time.time()
             data = [ 0 for i in range(7) ]
             query =                                                         \
                 'SELECT WEEKDAY(date), COUNT(*) '                           \
@@ -319,10 +320,11 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             if res:
                 for i in res:
                     data[i[0]] += i[1]
-                self.__bar_chart(data, filename, WEEK_DAYS)
+                self.__bar_chart(data, filename, time_start, WEEK_DAYS)
 
 
             # hour of day.
+            time_start = time.time()
             filename = 'hours_%s' % target if target else 'hours'
             data = [ 0 for i in range(24) ]
             query =                                                         \
@@ -334,12 +336,11 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             if res:
                 for i in res:
                     data[i[0]] += i[1]
-                self.__bar_chart(data, filename)
+                self.__bar_chart(data, filename, time_start)
 
 
-    def __bar_chart(self, data, name, label = None):
+    def __bar_chart(self, data, name, time_start, label = None):
         """ Generate bar charts from data """
-        time_start = time.time()
         max_val = max(data)
 
         # Can happen when a filter has been set on dates.
