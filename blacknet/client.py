@@ -196,7 +196,16 @@ class BlacknetClient(BlacknetSSLInterface):
     def _send(self, msgtype, message=None):
         data = [msgtype, message]
         sock = self._server_socket
-        sock.send(self.__packer.pack(data))
+
+        pdata = self.__packer.pack(data)
+        plen = len(pdata)
+
+        # Ensure that all data is sent properly.
+        while plen > 0:
+            sent = sock.send(pdata)
+            plen -= sent
+            pdata = pdata[sent:]
+
 
 
     def _send_handshake(self):
