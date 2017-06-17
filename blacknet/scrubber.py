@@ -1,8 +1,9 @@
 import codecs
-import math
-import time
 import json
+import math
+import os
 import sys
+import time
 
 from .config import BlacknetConfig, BlacknetConfigurationInterface
 from .database import BlacknetDatabase
@@ -184,7 +185,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         return res
 
     def __json_export(self, filepath, data):
-        path = "%s/%s" % (self.cache_path, filepath)
+        path = os.path.join(self.cache_path, filepath)
         with codecs.open(path, 'w', 'utf-8') as f:
             f.write(json.dumps({'data':data}))
 
@@ -362,7 +363,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
               + '&'.join(["%s=%s" % i for i in params.items()])
 
         # Get and write the image.
-        destination = "%s/status_%s.png" % (self.cache_path, name)
+        destination = os.path.join(self.cache_path, 'status_%s.png' % name)
         urlretrieve(url, destination)
 
         time_diff = (time.time() - time_start)
@@ -421,9 +422,9 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
               + '&'.join(["%s=%s" % i for i in params.items()])
 
         if target:
-            destination = "%s/minimap_%s.png" % (self.cache_path, target)
+            destination = os.path.join(self.cache_path, 'minimap_%s.png' % target)
         else:
-            destination = "%s/minimap.png" % (self.cache_path)
+            destination = os.path.join(self.cache_path, 'minimap.png')
 
         urlretrieve(url, destination)
 

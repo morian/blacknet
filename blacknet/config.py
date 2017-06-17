@@ -32,7 +32,7 @@ class BlacknetConfig(configparser.ConfigParser):
 
         if not found:
             for f in BLACKNET_CONFIG_DIRS:
-                fname = "%s/blacknet.cfg" % f
+                fname = os.path.join(f, 'blacknet.cfg')
                 if os.path.isfile(fname):
                     cfg_file = fname
                     found = True
@@ -127,7 +127,7 @@ class BlacknetBlacklist(BlacknetConfigurationInterface):
     def _load(self):
         """ load blacklists from standard location and extra configuration """
 
-        files = ["%s/blacklist.cfg" % path for path in BLACKNET_BLACKLIST_DIRS]
+        files = [os.path.join(path, 'blacklist.cfg') for path in BLACKNET_BLACKLIST_DIRS]
         if self.extra_file:
             files.append(self.extra_file)
         self.read(files)

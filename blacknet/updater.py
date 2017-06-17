@@ -50,7 +50,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
             dirname = self.__dirname
         else:
             # That's the ZipDir (extracted)
-            dirname = "%s/geolitecity" % self.dirname
+            dirname = os.path.join(self.dirname, 'geolitecity')
 
         if dirname:
             shutil.rmtree(dirname)
@@ -71,7 +71,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
     def dirname(self):
         if self.__dirname is None:
             if self.test_mode:
-                self.__dirname = 'tests/geo-updater/'
+                self.__dirname = os.path.join('tests', 'geo-updater')
             else:
                 self.__dirname = tempfile.mkdtemp()
         return self.__dirname
@@ -82,7 +82,8 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
     def fetch_zip(self):
         if not self.test_mode:
-            zipf = open("%s/geolitecity.zip" % self.dirname, 'wb')
+            zip_file = os.path.join(self.dirname, 'geolitecity.zip')
+            zipf = open(zip_file, 'wb')
             res = urlopen(GEOLITE_CSV_URL)
 
             content = res.read()
@@ -93,11 +94,12 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
 
     def extract_zip(self):
-        zip_dir = "%s/geolitecity/" % self.dirname
+        zip_dir = os.path.join(self.dirname, 'geolitecity')
         if not os.path.exists(zip_dir):
             os.mkdir(zip_dir)
 
-        zip_ref = zipfile.ZipFile("%s/geolitecity.zip" % self.dirname, 'r')
+        zip_file = os.path.join(self.dirname, 'geolitecity.zip')
+        zip_ref = zipfile.ZipFile(zip_file, 'r')
         for item in zip_ref.namelist():
             filepath = zip_ref.extract(item, zip_dir)
             filename = os.path.basename(filepath)
