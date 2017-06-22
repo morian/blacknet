@@ -204,7 +204,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
 
     def _threads_cleanup(self):
         for thr in self._threads:
-            if not thr.is_alive():
+            if not self.started and not thr.is_alive():
                 thr.join()
                 self._threads.remove(thr)
 
@@ -213,7 +213,8 @@ class BlacknetServer(BlacknetConfigurationInterface):
         for thr in self._threads:
             if thr.is_alive():
                 thr.disconnect()
-            thr.join()
+            if thr.started:
+                thr.join()
             self._threads.remove(thr)
 
 

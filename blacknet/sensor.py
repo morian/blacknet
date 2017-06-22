@@ -183,6 +183,8 @@ class BlacknetSensorThread(Thread):
 
     def __init__(self, bns, client):
         super(BlacknetSensorThread, self).__init__()
+
+        self.started = False
         self.__connection_lock = Lock()
         self.__bns = bns
 
@@ -198,6 +200,7 @@ class BlacknetSensorThread(Thread):
 
 
     def run(self):
+        self.started = True
         self.log_debug("SSH: starting session")
 
         self.__client.settimeout(None)

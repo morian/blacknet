@@ -89,6 +89,7 @@ class BlacknetServerThread(Thread):
             BlacknetMsgType.GOODBYE: self.handle_goodbye,
         }
         self.handler = handler
+        self.started = False
 
         self.database = BlacknetDatabase(bns.config, bns.logger)
         self.__blacklist = bns.blacklist
@@ -153,6 +154,7 @@ class BlacknetServerThread(Thread):
 
 
     def run(self):
+        self.started = True
         client = self.__client
         running = True
 
