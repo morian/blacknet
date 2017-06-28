@@ -153,9 +153,7 @@ class BlacknetServerThread(Thread):
         return name
 
 
-    def run(self):
-        self.started = True
-        client = self.__client
+    def handle_sensor(self, client):
         running = True
 
         while running:
@@ -176,6 +174,16 @@ class BlacknetServerThread(Thread):
                     self.handle_unknown(msgtype, data)
             self.database.commit()
         self.disconnect()
+
+
+    def run(self):
+        self.started = True
+        client = self.__client
+
+        try:
+            self.handle_sensor(client)
+        except Exception as e:
+            self.log_warning("sensor exception: %s" % e)
 
 
     @property
