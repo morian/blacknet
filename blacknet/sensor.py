@@ -167,9 +167,13 @@ class BlacknetSensor(BlacknetServer):
         self.blacknet.reload()
 
 
+    def do_ping(self):
+        # Now this is non-conditional ping after some inactivity.
+        self.blacknet.send_ping()
+
     def serve(self):
         """ serve new connections into new threads """
-        super(BlacknetSensor, self).serve(BlacknetSensorThread)
+        super(BlacknetSensor, self).serve(BlacknetSensorThread, BLACKNET_PING_INTERVAL, self.do_ping)
 
 
     def shutdown(self):
@@ -179,7 +183,6 @@ class BlacknetSensor(BlacknetServer):
 
 class BlacknetSensorThread(Thread):
     """ Separate thread to handle SSH incoming connection requests. """
-
 
     def __init__(self, bns, client):
         super(BlacknetSensorThread, self).__init__()

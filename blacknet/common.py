@@ -14,6 +14,8 @@ class BlacknetMsgType:
     CLIENT_NAME    =  1
     SSH_CREDENTIAL =  2
     SSH_PUBLICKEY  =  3
+    PING           = 10
+    PONG           = 11
     GOODBYE        = 16
 
 # General directories to look for configuration files.
@@ -59,8 +61,12 @@ BLACKNET_SSH_AUTH_RETRIES = 42     # Max. number of auth retries before disconne
 # SSH client maximum socket duration
 BLACKNET_SSH_CLIENT_TIMEOUT = (20 * BLACKNET_SSH_AUTH_RETRIES)
 
+# Used in select timeout to ping server regularly (5mn here).
+BLACKNET_PING_INTERVAL = (5 * 60)
+
 # How many times to wait for close acknowledgement.
 BLACKNET_CLIENT_GOODBYE_TIMEOUT = 5.0
+BLACKNET_CLIENT_PING_TIMEOUT = 3.0
 BLACKNET_CLIENT_CONN_RETRIES = 3
 BLACKNET_DATABASE_RETRIES = 2
 # Stands for "Other country" in geolite-city database.

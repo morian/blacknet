@@ -86,6 +86,7 @@ class BlacknetServerThread(Thread):
             BlacknetMsgType.CLIENT_NAME: self.handle_client_name,
             BlacknetMsgType.SSH_CREDENTIAL: self.handle_ssh_credential,
             BlacknetMsgType.SSH_PUBLICKEY: self.handle_ssh_publickey,
+            BlacknetMsgType.PING: self.handle_ping,
             BlacknetMsgType.GOODBYE: self.handle_goodbye,
         }
         self.handler = handler
@@ -239,6 +240,15 @@ class BlacknetServerThread(Thread):
         if data != BLACKNET_HELLO:
             self.log_error("client reported buggy hello (got %s, expected %s)" % (data, BLACKNET_HELLO))
             return False
+        return True
+
+
+    def handle_ping(self, data):
+        client = self.__client
+        if client:
+            self.log_debug("responding to ping request.")
+            data = [BlacknetMsgType.PONG, None]
+            client.send(self.__packer.pack(data))
         return True
 
 

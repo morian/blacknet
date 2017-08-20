@@ -204,7 +204,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
 
     def _threads_cleanup(self):
         for thr in self._threads:
-            if not self.started and not thr.is_alive():
+            if not thr.started and not thr.is_alive():
                 thr.join()
                 self._threads.remove(thr)
 
@@ -218,15 +218,17 @@ class BlacknetServer(BlacknetConfigurationInterface):
             self._threads.remove(thr)
 
 
-    def serve(self, threadclass=Thread):
+    def serve(self, threadclass=Thread, timeout=None, timefunc=None):
         """ serve new connections into new threads """
 
         self._threads_cleanup()
 
         sockets = self._interfaces.values()
         try:
-            acceptable = select.select(sockets, [], [])[0]
-            for sock in acceptable:
+            acceptable = select.select(sockets, [], [], timeout)
+            if not len(acceptable[0]) and timefunc:
+                timefunc()
+            for sock in acceptable[0]:
                 client, address = sock.accept()
                 t = threadclass(self, client)
                 self._threads.append(t)
@@ -250,4 +252,6 @@ class BlacknetServer(BlacknetConfigurationInterface):
         self._listen_start_stop()
         self._threads_killer()
         self.log_info("== %s stopped" % self.__class__.__name__)
-        self._logger.close()
+        logger = self._logger
+        self._logger = None
+        logger.close()

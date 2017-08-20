@@ -206,7 +206,6 @@ class BlacknetClient(BlacknetSSLInterface):
             pdata = pdata[sent:]
 
 
-
     def _send_handshake(self):
         self._send(BlacknetMsgType.HELLO, BLACKNET_HELLO)
         if self.client_name:
@@ -227,10 +226,33 @@ class BlacknetClient(BlacknetSSLInterface):
             finally:
                 self.__send_lock.release()
 
-
     def send_ssh_credential(self, data):
         self._send_retry(BlacknetMsgType.SSH_CREDENTIAL, data)
 
-
     def send_ssh_publickey(self, data):
         self._send_retry(BlacknetMsgType.SSH_PUBLICKEY, data)
+
+    def send_ping(self):
+        answered = False
+
+        self.__send_lock.acquire()
+        self._send(BlacknetMsgType.PING)
+        try:
+            sock = self._server_socket
+            acceptable = select.select([sock], [], [], BLACKNET_CLIENT_PING_TIMEOUT)
+            if acceptable[0]:
+                buf = self._server_socket.recv(4096)
+                self.__unpacker.feed(buf)
+
+                for (msgtype, data) in self.__unpacker:
+                    # This is the only message type we can receive here.
+                    if msgtype == BlacknetMsgType.PONG:
+                        self.log_debug("client received pong acknowledgement.")
+                        answered = True
+            else:
+                self.log_info("client did not receive pong from server, disconnecting.")
+        except Exception as e:
+            self.log_error("pong error: %s" % e)
+        if not answered:
+            self.disconnect(goodbye=False)
+        self.__send_lock.release()

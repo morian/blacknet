@@ -33,10 +33,13 @@ l.addHandler(c)
 
 
 def runtests_ssh_serve(bns):
+    bns.do_ping()
     bns.serve()
+
 
 def runtests_main_serve(bns):
     bns.serve()
+
 
 def runtests_ssh_client():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
