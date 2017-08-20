@@ -1,5 +1,10 @@
 # Blacknet changelog
 
+## [2.0.8] - 2017-08-23
+- Add ping/pong for link checker and automatic reconnect
+- Few enhancements on thread safety
+- Scrubber bugfixes
+
 ## [2.0.7] - 2017-06-10
 - Harden communications between master and sensors
 - Fix log verbosity on failed connections
