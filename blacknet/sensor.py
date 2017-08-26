@@ -168,8 +168,9 @@ class BlacknetSensor(BlacknetServer):
 
 
     def do_ping(self):
-        # Now this is non-conditional ping after some inactivity.
-        self.blacknet.send_ping()
+        # Send ping only on real TCP links (not local sockets).
+        if not self.blacknet.server_is_sockfile:
+            self.blacknet.send_ping()
 
     def serve(self):
         """ serve new connections into new threads """
@@ -205,8 +206,6 @@ class BlacknetSensorThread(Thread):
     def run(self):
         self.started = True
         self.log_debug("SSH: starting session")
-
-        self.__client.settimeout(None)
 
         t = paramiko.Transport(self.__client)
         t.local_version = self.__bns.ssh_banner

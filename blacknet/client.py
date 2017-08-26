@@ -132,6 +132,13 @@ class BlacknetClient(BlacknetSSLInterface):
                 else:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.connect(self.server_address)
+
+                # Set keep-alive parameters to automatically close connection on error.
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                if not self.server_is_sockfile:
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 15)
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 30)
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, BLACKNET_CLIENT_CONN_RETRIES)
                 break
             except socket.error as e:
                 if tries == BLACKNET_CLIENT_CONN_RETRIES and not self.__server_error:

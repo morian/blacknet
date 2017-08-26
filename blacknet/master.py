@@ -114,7 +114,6 @@ class BlacknetServerThread(Thread):
         self.__use_ssl = (client.family != socket.AF_UNIX)
 
         client.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        client.settimeout(None)
         if self.__use_ssl:
             client = bns.ssl_context.wrap_socket(client, server_side=True)
         self.__client = client
