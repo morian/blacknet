@@ -243,8 +243,9 @@ class BlacknetClient(BlacknetSSLInterface):
         answered = False
 
         self.__send_lock.acquire()
-        self._send(BlacknetMsgType.PING)
         try:
+            self._send(BlacknetMsgType.PING)
+
             sock = self._server_socket
             acceptable = select.select([sock], [], [], BLACKNET_CLIENT_PING_TIMEOUT)
             if acceptable[0]:
