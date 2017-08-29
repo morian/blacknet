@@ -54,7 +54,7 @@ def runtests_ssh_client():
     except:
         pass
 
-    for suffix in ['0', '1', 'a', 'b', 'c', 'é', '&', 'L', ')', '€', '\xfe']:
+    for suffix in ['0', '1', 'a', 'b', 'c', 'é', '&', 'L', ')', '€', '\xfe', '\xa8']:
         try:
             password = 'password_%s' % suffix
             t.auth_password('blacknet', password)

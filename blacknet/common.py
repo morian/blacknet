@@ -90,9 +90,24 @@ BLACKNET_CIPHERS = [
 ]
 
 def blacknet_ensure_unicode(message):
-    if PY2 and isinstance(message, str):
-        message = message.decode('utf-8')
-    return message
+    def blacknet_decode(message):
+        data = None
+        for encoding in ['utf-8', 'latin1']:
+            try:
+                data = message.decode(encoding)
+                return data
+            except UnicodeDecodeError:
+                pass # Unicode error
+        if not data:
+            data = message.decode('utf-8', 'ignore')
+        return data
+
+    if (PY2 and isinstance(message, str)) or (PY3 and isinstance(message, bytes)):
+        return blacknet_decode(message)
+    try:
+        return message.encode('utf-8')
+    except UnicodeEncodeError:
+        return message.encode('utf-8', 'ignore').decode('utf-8')
 
 def blacknet_ip_to_int(arg):
     return struct.unpack("!I", socket.inet_aton(arg))[0]
