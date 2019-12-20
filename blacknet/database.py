@@ -138,6 +138,10 @@ class BlacknetDatabaseCursor(object):
     def insert_location(self, row):
         query = 'INSERT INTO `locations` (locId,country,region,city,postalCode,latitude,longitude,metroCode,areaCode) ' \
                 'VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s);'
+        # Make sure they are mapped to NULL.
+        for i in (7, 8):
+            if not len(row[i]):
+                row[i] = None
         return self.execute(query, row)
 
     # Used for blacknet scrubber

@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `attackers` (
   `first_seen` DATETIME,
   `last_seen` DATETIME,
   `dns` varchar(256) NOT NULL,
-  `notes` TEXT DEFAULT "" NOT NULL,
+  `notes` text,
   `locId` int(10) unsigned NOT NULL,
   `n_attempts` int(10) unsigned DEFAULT 0,
   PRIMARY KEY (`id`),
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS `pubkeys` (
   `id` INT(10) UNSIGNED AUTO_INCREMENT,
   `name` VARCHAR(16) NOT NULL,
   `fingerprint` CHAR(32) NOT NULL,
-  `data` TEXT NOT NULL,
+  `data` text NOT NULL,
   `bits` INT(5) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE (`fingerprint`)
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `commands` (
   `date` DATETIME,
   `target` varchar(15) NOT NULL,
   `login` varchar(15) NOT NULL,
-  `command` text DEFAULT "" NOT NULL,
+  `command` text NOT NULL,
   PRIMARY KEY (`id`),
   INDEX (`attacker_id`)
 ) ENGINE=MyISAM DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;

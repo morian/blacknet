@@ -1,14 +1,15 @@
+dist: xenial
 language: python
 python:
   - "2.7"
-  - "3.4"
-  - "3.5"
   - "3.6"
-
-cache: pip
+  - "3.7"
+  - "3.8"
 
 addons:
-  mariadb: '10.0'
+  mariadb: '10.3'
+
+cache: pip
 
 install:
   - pip install -U configparser msgpack-python PyMySQL paramiko
