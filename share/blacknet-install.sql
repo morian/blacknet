@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `attackers` (
   `first_seen` DATETIME,
   `last_seen` DATETIME,
   `dns` varchar(256) NOT NULL,
-  `notes` text,
+  `notes` text NOT NULL DEFAULT '',
   `locId` int(10) unsigned NOT NULL,
   `n_attempts` int(10) unsigned DEFAULT 0,
   PRIMARY KEY (`id`),
