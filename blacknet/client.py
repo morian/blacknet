@@ -23,8 +23,8 @@ class BlacknetClient(BlacknetSSLInterface):
         self.__client_name = None
         self.__connect_lock = RLock()
         self.__send_lock = Lock()
-        self.__packer = Packer(encoding='utf-8')
-        self.__unpacker = Unpacker(encoding='utf-8')
+        self.__packer = Packer()
+        self.__unpacker = Unpacker()
 
 
     def __del__(self):

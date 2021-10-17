@@ -100,8 +100,8 @@ class BlacknetServerThread(Thread):
         self.__logger = bns.logger
         self.__mysql_error = 0
         self.__session_interval = bns.session_interval
-        self.__unpacker = Unpacker(encoding='utf-8')
-        self.__packer = Packer(encoding='utf-8')
+        self.__unpacker = Unpacker()
+        self.__packer = Packer()
         self.__dropped_count = 0
         self.__attempt_count = 0
         self.__atk_cache = {}
