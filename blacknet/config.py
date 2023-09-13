@@ -1,10 +1,7 @@
 import re
 import os
 
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+import configparser
 
 from .common import *
 

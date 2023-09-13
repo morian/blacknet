@@ -155,7 +155,7 @@ class BlacknetSensor(BlacknetServer):
         if not prv:
             prv = RSAKey(filename=prvfile)
         self.ssh_host_key = prv
-        self.ssh_host_hash = paramiko.py3compat.u(hexlify(prv.get_fingerprint()))
+        self.ssh_host_hash = hexlify(prv.get_fingerprint()).decode('ascii')
         self.log_info("SSH fingerprint: %s" % self.ssh_host_hash)
 
 

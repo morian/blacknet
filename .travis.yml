@@ -1,10 +1,10 @@
 dist: xenial
 language: python
 python:
-  - "2.7"
-  - "3.6"
-  - "3.7"
   - "3.8"
+  - "3.9"
+  - "3.10"
+  - "3.11"
 
 addons:
   mariadb: '10.3'
@@ -12,7 +12,7 @@ addons:
 cache: pip
 
 install:
-  - pip install -U configparser msgpack-python PyMySQL paramiko
+  - pip install -U msgpack PyMySQL paramiko
   - pip install -U coveralls coverage
 
 before_script:

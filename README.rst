@@ -28,8 +28,8 @@ honeypots, which IP addresses are targeting you and from where.
 Requirements
 ------------
 * Python dependencies:
-	- CPython_ >= 2.7 or >= 3.4
-	- MsgPack_
+	- CPython_ >= 3.8
+	- MsgPack_ >= 1.0.0
 	- PyMySQL_
 	- Paramiko_
 
