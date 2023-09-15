@@ -1,60 +1,70 @@
-import errno
-import os
 import socket
-
-from pymysql import MySQLError
-from msgpack import Unpacker, Packer
 from threading import Lock, Thread
+from typing import Any, Optional
 
+from msgpack import Packer, Unpacker
+from pymysql import MySQLError
+
+from .common import (
+    BLACKNET_DATABASE_RETRIES,
+    BLACKNET_DEFAULT_LOCID,
+    BLACKNET_DEFAULT_SESSION_INTERVAL,
+    BLACKNET_HELLO,
+    BLACKNET_LOG_DEBUG,
+    BLACKNET_LOG_DEFAULT,
+    BLACKNET_LOG_ERROR,
+    BLACKNET_LOG_INFO,
+    BLACKNET_LOG_WARNING,
+    BlacknetMsgType,
+    blacknet_gethostbyaddr,
+    blacknet_ip_to_int,
+)
 from .config import BlacknetBlacklist
-from .sslif import BlacknetSSLInterface
 from .database import BlacknetDatabase
 from .server import BlacknetServer
-from .common import *
+from .sslif import BlacknetSSLInterface
 
 
 class BlacknetMasterServer(BlacknetServer, BlacknetSSLInterface):
-    """ Main blackNet server class """
-
+    """Main blackNet server class."""
 
     def __init__(self, cfg_file=None):
-        super(BlacknetMasterServer, self).__init__('server', cfg_file)
-        BlacknetSSLInterface.__init__(self, self.config, 'server')
+        """Instanciate a new blacknet server."""
+        BlacknetServer.__init__(self, "server", cfg_file)
+        BlacknetSSLInterface.__init__(self, self.config, "server")
 
         self.__test_mode = None
         self.__session_interval = None
         self.blacklist = BlacknetBlacklist(self.config)
 
-
     @property
     def logger(self):
+        """Get a reference to the current logger."""
         return self._logger
 
-
     @property
-    def session_interval(self):
+    def session_interval(self) -> int:
+        """Currently configuration session interval."""
         if not self.__session_interval:
-            if self.has_config('session_interval'):
-                self.__session_interval = int(self.get_config('session_interval'))
+            if self.has_config("session_interval"):
+                self.__session_interval = int(self.get_config("session_interval"))
             else:
                 self.__session_interval = BLACKNET_DEFAULT_SESSION_INTERVAL
         return self.__session_interval
 
-
     @property
-    def test_mode(self):
+    def test_mode(self) -> bool:
+        """Whether we are currently running in test mode."""
         if self.__test_mode is None:
-            if self.has_config('test_mode'):
-                self.__test_mode = bool(self.get_config('test_mode'))
+            if self.has_config("test_mode"):
+                self.__test_mode = bool(self.get_config("test_mode"))
             else:
                 self.__test_mode = False
         return self.__test_mode
 
-
-    def reload(self):
-        """ reload server configuration """
-
-        super(BlacknetMasterServer, self).reload()
+    def reload(self) -> None:
+        """Reload server configuration."""
+        super().reload()
         self.__test_mode = None
         self.__session_interval = None
         self.blacklist.reload()
@@ -63,23 +73,21 @@ class BlacknetMasterServer(BlacknetServer, BlacknetSSLInterface):
         for thr in self._threads:
             thr.database.reload()
 
-
     def serve(self):
-        """ serve new connections into new threads """
-
-        super(BlacknetMasterServer, self).serve(BlacknetServerThread)
-
+        """Serve new connections into new threads."""
+        super().serve(BlacknetServerThread)
 
     def shutdown(self):
-        super(BlacknetMasterServer, self).shutdown()
+        """Shutdown the server."""
+        super().shutdown()
 
 
 class BlacknetServerThread(Thread):
-    """ Server thread handling blacknet client connections """
-
+    """Server thread handling blacknet client connections."""
 
     def __init__(self, bns, client):
-        super(BlacknetServerThread, self).__init__()
+        """Initialize a new thread for a new client connection."""
+        super().__init__()
 
         handler = {
             BlacknetMsgType.HELLO: self.handle_hello,
@@ -111,7 +119,7 @@ class BlacknetServerThread(Thread):
 
         peer = client.getpeername()
         self.__peer_ip = peer[0] if peer else "local"
-        self.__use_ssl = (client.family != socket.AF_UNIX)
+        self.__use_ssl = client.family != socket.AF_UNIX
 
         client.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         if self.__use_ssl:
@@ -121,45 +129,45 @@ class BlacknetServerThread(Thread):
         self.name = self.peername
         self.log_info("starting session (SSL: %s)" % self.__use_ssl)
 
-
     def __del__(self):
+        """Close everything when deleted."""
         self.disconnect()
         self.database.disconnect()
 
-
     def disconnect(self):
+        """Disconnect from the client."""
         self.__connect_lock.acquire()
         if self.__client:
             self.log_info("stopping session")
             try:
                 self.__client.shutdown(socket.SHUT_RDWR)
-            except socket.error:
+            except OSError:
                 pass
             self.__client.close()
             self.__client = None
         self.__connect_lock.release()
 
-
     @property
-    def peername(self):
+    def peername(self) -> str:
+        """Name of the remote sensor (SSL peer)."""
         name = "unknown"
         client = self.__client
         if self.__use_ssl and client:
             cert = client.getpeercert()
-            if 'subject' in cert:
-                for item in cert['subject']:
+            if "subject" in cert:
+                for item in cert["subject"]:
                     if item[0][0] == "commonName":
                         name = item[0][1]
         return name
 
-
     def handle_sensor(self, client):
+        """Main loop used to handle what is transmitted."""
         running = True
 
         while running:
             try:
                 buf = client.recv(8192)
-            except socket.error as e:
+            except OSError as e:
                 self.log_warning("socket error: %s" % e)
                 break
 
@@ -167,7 +175,7 @@ class BlacknetServerThread(Thread):
                 break
             self.__unpacker.feed(buf)
 
-            for (msgtype, data) in self.__unpacker:
+            for msgtype, data in self.__unpacker:
                 if msgtype in self.handler:
                     running = self.handler[msgtype](data)
                 else:
@@ -175,8 +183,8 @@ class BlacknetServerThread(Thread):
             self.database.commit()
         self.disconnect()
 
-
     def run(self):
+        """Thread entry point for the current client."""
         self.started = True
         client = self.__client
 
@@ -185,36 +193,41 @@ class BlacknetServerThread(Thread):
         except Exception as e:
             self.log_warning("sensor exception: %s" % e)
 
-
     @property
     def cursor(self):
+        """Get the current database cursor."""
         if not self.__cursor:
             cursor = self.database.cursor()
             self.__cursor = cursor
         return self.__cursor
 
-
-    def log(self, message, level=BLACKNET_LOG_DEFAULT):
+    def log(self, message: str, level: Optional[int] = BLACKNET_LOG_DEFAULT) -> None:
+        """Write something to the attached logger."""
         if self.__logger:
-            peername = "%s (%s)" % (self.name, self.__peer_ip)
-            self.__logger.write("%s: %s" % (peername, message), level)
+            peername = f"{self.name} ({self.__peer_ip})"
+            self.__logger.write(f"{peername}: {message}", level)
 
-    def log_error(self, message):
+    def log_error(self, message: str) -> None:
+        """Write an error message to the logger."""
         self.log(message, BLACKNET_LOG_ERROR)
 
-    def log_warning(self, message):
+    def log_warning(self, message: str) -> None:
+        """Write a warning message to the logger."""
         self.log(message, BLACKNET_LOG_WARNING)
 
-    def log_info(self, message):
+    def log_info(self, message: str) -> None:
+        """Write an informational message to the logger."""
         self.log(message, BLACKNET_LOG_INFO)
 
-    def log_debug(self, message):
+    def log_debug(self, message: str) -> None:
+        """Write a debug message to the logger."""
         self.log(message, BLACKNET_LOG_DEBUG)
 
-    def __mysql_retry(self, function, *args):
-        saved_exception = None
+    def __mysql_retry(self, function, *args) -> Any:
+        """Wrapper function used to retry queries on MySQL error."""
+        saved_exception = None  # type: Optional[BaseException]
 
-        for retry in range(BLACKNET_DATABASE_RETRIES):
+        for _retry in range(BLACKNET_DATABASE_RETRIES):
             try:
                 res = function(*args)
                 self.__mysql_error = 0
@@ -227,22 +240,27 @@ class BlacknetServerThread(Thread):
                 self.__cursor = None
                 self.database.disconnect()
                 saved_exception = e
-        raise saved_exception
 
+        if isinstance(BaseException, saved_exception):
+            raise saved_exception
+        return None
 
     ## -- Message handling functions -- ##
     def handle_unknown(self, msgtype, data):
-        self.log_error("unknown msgtype %u" % msgtype)
-
+        """Handle an unknown message type."""
+        self.log_error(f"unknown msgtype {msgtype}")
 
     def handle_hello(self, data):
+        """Handle a hello packet."""
         if data != BLACKNET_HELLO:
-            self.log_error("client reported buggy hello (got %s, expected %s)" % (data, BLACKNET_HELLO))
+            self.log_error(
+                f"client reported buggy hello (got {data}, expected {BLACKNET_HELLO})"
+            )
             return False
         return True
 
-
     def handle_ping(self, data):
+        """Handle a ping request from the client."""
         client = self.__client
         if client:
             self.log_debug("responding to ping request.")
@@ -250,27 +268,26 @@ class BlacknetServerThread(Thread):
             client.send(self.__packer.pack(data))
         return True
 
-
     def handle_goodbye(self, data):
+        """Handle a goodbye request from the client."""
         client = self.__client
         if client:
             data = [BlacknetMsgType.GOODBYE, None]
             client.send(self.__packer.pack(data))
         return False
 
-
     def handle_client_name(self, data):
+        """Client is telling us its name."""
         if data != self.name:
             self.log_info("changing client name to %s" % data)
             self.name = data
         return True
 
-
     def __add_ssh_attacker(self, data):
         cursor = self.cursor
 
-        ip = data['client']
-        time = data['time']
+        ip = data["client"]
+        time = data["time"]
         atk_id = blacknet_ip_to_int(ip)
 
         if atk_id not in self.__atk_cache:
@@ -284,7 +301,7 @@ class BlacknetServerThread(Thread):
                 cursor.insert_attacker(args)
                 (first_seen, last_seen) = (time, time)
             else:
-                    (first_seen, last_seen) = res
+                (first_seen, last_seen) = res
             self.__atk_cache[atk_id] = (first_seen, last_seen)
         else:
             (first_seen, last_seen) = self.__atk_cache[atk_id]
@@ -300,11 +317,10 @@ class BlacknetServerThread(Thread):
 
         return atk_id
 
-
     def __add_ssh_session(self, data, atk_id):
         cursor = self.cursor
         sensor = self.name
-        time = data['time']
+        time = data["time"]
 
         if atk_id not in self.__ses_cache:
             res = cursor.check_session(atk_id, sensor)
@@ -328,20 +344,26 @@ class BlacknetServerThread(Thread):
     def __add_ssh_attempt(self, data, atk_id, ses_id):
         cursor = self.cursor
         # This happen while registering a pubkey authentication
-        password = data['passwd'] if 'passwd' in data else None
-        args = (atk_id, ses_id, data['user'], password, self.name, data['time'], data['version'])
-        att_id = cursor.insert_attempt(args)
-        return att_id
-
+        password = data["passwd"] if "passwd" in data else None
+        args = (
+            atk_id,
+            ses_id,
+            data["user"],
+            password,
+            self.name,
+            data["time"],
+            data["version"],
+        )
+        return cursor.insert_attempt(args)
 
     def __add_ssh_pubkey(self, data, att_id):
         cursor = self.cursor
-        fingerprint = data['kfp']
+        fingerprint = data["kfp"]
 
         if fingerprint not in self.__key_cache:
             res = cursor.check_pubkey(fingerprint)
             if res is None:
-                args = (data['ktype'], data['kfp'], data['k64'], data['ksize'])
+                args = (data["ktype"], data["kfp"], data["k64"], data["ksize"])
                 key_id = cursor.insert_pubkey(args)
             else:
                 key_id = res
@@ -352,17 +374,19 @@ class BlacknetServerThread(Thread):
         cursor.insert_attempts_pubkeys(att_id, key_id)
         return key_id
 
-
     def check_blacklist(self, data):
-        user = data['user']
+        """Check provided data against the configured blacklist."""
+        user = data["user"]
         if self.__blacklist.has(self.peername, user):
-            msg = 'blacklisted user %s from %s using %s' % (user, data['client'], data['version'])
+            client = data["client"]
+            version = data["version"]
+            msg = f"blacklisted user {user} from {client} using {version}"
             self.log_info(msg)
             raise Exception(msg)
 
     def __handle_ssh_common(self, data):
         if self.__test_mode:
-            data['client'] = '1.0.204.42'
+            data["client"] = "1.0.204.42"
 
         self.check_blacklist(data)
         atk_id = self.__mysql_retry(self.__add_ssh_attacker, data)
@@ -370,11 +394,10 @@ class BlacknetServerThread(Thread):
         att_id = self.__mysql_retry(self.__add_ssh_attempt, data, atk_id, ses_id)
         return (atk_id, ses_id, att_id)
 
-
     def handle_ssh_credential(self, data):
+        """Handle received SSH credentials."""
         try:
-            (atk_id, ses_id, att_id) = self.__handle_ssh_common(data)
-
+            atk_id, ses_id, att_id = self.__handle_ssh_common(data)
         except Exception as e:
             self.log_info("credential error: %s" % e)
             self.__dropped_count += 1
@@ -382,11 +405,11 @@ class BlacknetServerThread(Thread):
             self.__attempt_count += 1
         return True
 
-
     def handle_ssh_publickey(self, data):
+        """Handle received SSH public key."""
         try:
-            (atk_id, ses_id, att_id) = self.__handle_ssh_common(data)
-            key_id = self.__mysql_retry(self.__add_ssh_pubkey, data, att_id)
+            atk_id, ses_id, att_id = self.__handle_ssh_common(data)
+            self.__mysql_retry(self.__add_ssh_pubkey, data, att_id)
         except Exception as e:
             self.log_info("pubkey error: %s" % e)
             self.__dropped_count += 1

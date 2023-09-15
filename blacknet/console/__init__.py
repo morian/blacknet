@@ -4,8 +4,8 @@ from .sensor import run_sensor
 from .updater import run_updater
 
 __all__ = [
-    'run_master',
-    'run_scrubber',
-    'run_sensor',
-    'run_updater',
+    "run_master",
+    "run_scrubber",
+    "run_sensor",
+    "run_updater",
 ]

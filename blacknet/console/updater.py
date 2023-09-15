@@ -1,11 +1,14 @@
 from optparse import OptionParser
-from blacknet.updater import BlacknetGeoUpdater
+
+from ..updater import BlacknetGeoUpdater
 
 
-def run_updater():
+def run_updater() -> None:
+    """Run the updater console script."""
     parser = OptionParser()
-    parser.add_option("-c", "--config", dest="config",
-                      help="configuration file to use", metavar="FILE")
+    parser.add_option(
+        "-c", "--config", dest="config", help="configuration file to use", metavar="FILE"
+    )
 
     options, arg = parser.parse_args()
 

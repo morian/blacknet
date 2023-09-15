@@ -1,36 +1,47 @@
 import os
-
-from signal import signal, getsignal, SIGINT, SIGTERM, SIGHUP
 from optparse import OptionParser
-from blacknet.master import BlacknetMasterServer
+from signal import SIGHUP, SIGINT, SIGTERM, getsignal, signal
+from types import FrameType
+from typing import Optional
+
+from .. import BlacknetMasterServer
 
 running = True
 update = False
 
 
-def blacknet_quit(signal, frame):
-    """ exit this program in a clean way """
+def blacknet_quit(signal: int, frame: Optional[FrameType]) -> None:
+    """Exit this program in a clean way."""
     global running
     running = False
 
 
-def blacknet_reload(signal, frame):
-    """ reload server configuration in a clean way """
+def blacknet_reload(signal: int, frame: Optional[FrameType]) -> None:
+    """Reload server configuration in a clean way."""
     global update
     update = True
 
 
-def blacknet_write_pid(filename):
-    with open(filename, 'w') as fp:
+def blacknet_write_pid(filename: str) -> None:
+    """Write the daemon PID to the provided file."""
+    with open(filename, "w") as fp:
         fp.write(str(os.getpid()))
 
 
-def run_master():
+def run_master() -> None:
+    """Run the blacknet server console script."""
+    global update
     parser = OptionParser()
-    parser.add_option("-p", "--pidfile", dest="pidfile",
-                      help="file to write pid to at startup", metavar="FILE")
-    parser.add_option("-c", "--config", dest="config",
-                      help="configuration file to use", metavar="FILE")
+    parser.add_option(
+        "-p",
+        "--pidfile",
+        dest="pidfile",
+        help="file to write pid to at startup",
+        metavar="FILE",
+    )
+    parser.add_option(
+        "-c", "--config", dest="config", help="configuration file to use", metavar="FILE"
+    )
 
     options, arg = parser.parse_args()
 

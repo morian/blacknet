@@ -114,3 +114,9 @@ disallow_incomplete_defs = true
 disallow_untyped_decorators = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+	'msgpack',
+]
+ignore_missing_imports = true

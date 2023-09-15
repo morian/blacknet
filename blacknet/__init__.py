@@ -1,5 +1,4 @@
-"""
-Blacknet: A mutli-head python SSH honeypot system
+"""Blacknet: A mutli-head python SSH honeypot system.
 
 Copyright (c) 2017-2023 Blacknet contributors
 
@@ -31,9 +30,8 @@ from .version import version
 
 __version__ = version
 __all__ = [
-    'BlacknetMasterServer'
-    'BlacknetScrubber',
-    'BlacknetSensor',
-    'BlacknetGeoUpdater',
-    '__version__',
+    "BlacknetMasterServer",
+    "BlacknetScrubber",
+    "BlacknetSensor",
+    "BlacknetGeoUpdater",
 ]

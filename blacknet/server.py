@@ -4,32 +4,32 @@ import os
 import pwd
 import select
 import socket
-
 from threading import Thread
+from typing import Optional, Union  # noqa: F401
 
+from .common import (
+    BLACKNET_LOG_CRITICAL,
+    BLACKNET_LOG_DEBUG,
+    BLACKNET_LOG_DEFAULT,
+    BLACKNET_LOG_ERROR,
+    BLACKNET_LOG_INFO,
+    BLACKNET_SSL_DEFAULT_LISTEN,
+    BLACKNET_SSL_DEFAULT_PORT,
+)
 from .config import BlacknetConfig, BlacknetConfigurationInterface
 from .logger import BlacknetLogger
-from .common import *
-
-
-# Backward compatibility
-try:
-    InterruptedError = InterruptedError
-except:
-    InterruptedError = OSError
-
 
 
 class BlacknetServer(BlacknetConfigurationInterface):
-    """ Blacknet TCP Server Instance (used for both SSH server and SSL server) """
+    """Blacknet TCP Server Instance (used for both SSH server and SSL server)."""
 
     # default listening interface when no config is found.
     _default_listen = BLACKNET_SSL_DEFAULT_LISTEN
 
-
-    def __init__(self, role, cfg_file=None):
-        self.__listen_interfaces = None
-        self.__socket_permissions = None
+    def __init__(self, role: str, cfg_file=None):
+        """Instanciate a new blacknet server."""
+        self.__listen_interfaces = None  # type: Optional[list[Union[str, tuple[str, int]]]]
+        self.__socket_permissions = None  # type: Optional[tuple[str, str, int]]
 
         self._interfaces = {}
         self._threads = []
@@ -38,48 +38,50 @@ class BlacknetServer(BlacknetConfigurationInterface):
         config = BlacknetConfig()
         config.load(cfg_file)
 
-        BlacknetConfigurationInterface.__init__(self, config, role)
+        super().__init__(config, role)
 
         self._logger = BlacknetLogger(role, config)
         self.log_info("== %s is starting" % self.__class__.__name__)
 
         self._listen_start_stop()
 
-
     @property
-    def socket_permissions(self):
-        if self.__socket_permissions is None:
+    def socket_permissions(self) -> tuple[str, str, int]:
+        """Get socket permissions."""
+        socket_permissions = self.__socket_permissions
+        if socket_permissions is None:
             owner, group, mode = (None, None, None)
 
-            if self.has_config('listen_owner'):
-                owner = self.get_config('listen_owner')
-            if self.has_config('listen_group'):
-                group = self.get_config('listen_group')
-            if self.has_config('listen_mode'):
+            if self.has_config("listen_owner"):
+                owner = self.get_config("listen_owner")
+            if self.has_config("listen_group"):
+                group = self.get_config("listen_group")
+            if self.has_config("listen_mode"):
                 try:
-                    mode_string = self.get_config('listen_mode')
+                    mode_string = self.get_config("listen_mode")
                     mode = int(mode_string, 8)
                 except ValueError as e:
                     self.log_error("socket mode: %s" % e)
-            self.__socket_permissions = (owner, group, mode)
-        return self.__socket_permissions
-
+            socket_permissions = (owner, group, mode)
+            self.__socket_permissions = socket_permissions
+        return socket_permissions
 
     @property
     def listen_interfaces(self):
+        """List of listening interfaces."""
         if self.__listen_interfaces is None:
             listen_string = self._default_listen
-            listen = []
+            listen = []  # type: list[Union[str, tuple[str, int]]]
 
-            if self.has_config('listen'):
-                listen_string = self.get_config('listen')
+            if self.has_config("listen"):
+                listen_string = self.get_config("listen")
 
-            for interface in listen_string.split(','):
+            for interface in listen_string.split(","):
                 interface = interface.strip()
-                if interface.startswith('/'):
+                if interface.startswith("/"):
                     listen.append(interface)
                 else:
-                    addr = interface.split(':')
+                    addr = interface.split(":")
                     address = addr[0]
                     port = BLACKNET_SSL_DEFAULT_PORT
 
@@ -92,26 +94,29 @@ class BlacknetServer(BlacknetConfigurationInterface):
             self.__listen_interfaces = listen
         return self.__listen_interfaces
 
-
-    def log(self, message, level=BLACKNET_LOG_DEFAULT):
+    def log(self, message: str, level=BLACKNET_LOG_DEFAULT) -> None:
+        """Write something to the attached logger."""
         if self._logger:
             self._logger.write(message, level)
 
     def log_critical(self, message):
+        """Write a critical message to the logger."""
         self.log(message, BLACKNET_LOG_CRITICAL)
 
     def log_error(self, message):
+        """Write an error message to the logger."""
         self.log(message, BLACKNET_LOG_ERROR)
 
     def log_info(self, message):
+        """Write an informational message to the logger."""
         self.log(message, BLACKNET_LOG_INFO)
 
     def log_debug(self, message):
+        """Write a debug message to the logger."""
         self.log(message, BLACKNET_LOG_DEBUG)
 
     def reload(self):
-        """ reload instance configuration """
-
+        """Reload instance configuration."""
         self.log_info("reloading configuration")
         BlacknetConfigurationInterface.reload(self)
         self._logger.reload()
@@ -119,7 +124,6 @@ class BlacknetServer(BlacknetConfigurationInterface):
         self.__listen_interfaces = None
         self.__socket_permissions = None
         self._listen_start_stop()
-
 
     def _listen_start_stop(self):
         interfaces = self.listen_interfaces
@@ -151,7 +155,6 @@ class BlacknetServer(BlacknetConfigurationInterface):
         for itf in started_interfaces:
             self._listen_start(itf)
 
-
     def _listen_start(self, interface):
         unix_socket = not isinstance(interface, tuple)
         name = interface if unix_socket else "%s:%u" % interface
@@ -172,11 +175,10 @@ class BlacknetServer(BlacknetConfigurationInterface):
         self._interfaces[interface] = sock
         self.log_info("starting interface %s" % name)
 
-
     def _listen_stop(self, interface):
         sock = self._interfaces.pop(interface, None)
         if sock:
-            unix_socket = (sock.family == socket.AF_UNIX)
+            unix_socket = sock.family == socket.AF_UNIX
             name = interface if unix_socket else "%s:%u" % interface
 
             self.log_info("stopping interface %s" % name)
@@ -186,9 +188,8 @@ class BlacknetServer(BlacknetConfigurationInterface):
             if unix_socket:
                 os.remove(interface)
 
-
     def _permissions_apply(self, filepath):
-        (owner, group, mode) = self.socket_permissions
+        owner, group, mode = self.socket_permissions
         if owner or group:
             uid = os.getuid()
             gid = os.getgid()
@@ -196,18 +197,16 @@ class BlacknetServer(BlacknetConfigurationInterface):
             if owner:
                 uid = pwd.getpwnam(owner).pw_uid
             if group:
-                gid = pwd.getgrnam(group).gr_gid
+                gid = grp.getgrnam(group).gr_gid
             os.chown(filepath, uid, gid)
         if mode:
             os.chmod(filepath, mode)
-
 
     def _threads_cleanup(self):
         for thr in self._threads:
             if not thr.started and not thr.is_alive():
                 thr.join()
                 self._threads.remove(thr)
-
 
     def _threads_killer(self):
         for thr in self._threads:
@@ -217,10 +216,8 @@ class BlacknetServer(BlacknetConfigurationInterface):
                 thr.join()
             self._threads.remove(thr)
 
-
     def serve(self, threadclass=Thread, timeout=None, timefunc=None):
-        """ serve new connections into new threads """
-
+        """Serve new connections into new threads."""
         self._threads_cleanup()
 
         sockets = self._interfaces.values()
@@ -235,18 +232,15 @@ class BlacknetServer(BlacknetConfigurationInterface):
                 t.start()
         except InterruptedError:
             pass
-        except socket.error as e:
-            if e.errno != errno.EINTR:
-                self.log_error("socket error: %s" % e)
-        except select.error as e:
+        except OSError as e:
             error = e.args[0]
             if error != errno.EINTR:
                 self.log_error("select error: %s" % e)
         except Exception as e:
             self.log_error("error: %s" % e)
 
-
     def shutdown(self):
+        """Stop all interfaces and shutdown the server."""
         # Force expected interfaces to be an empty list.
         self.__listen_interfaces = []
         self._listen_start_stop()
