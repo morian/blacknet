@@ -1,8 +1,13 @@
+*.py[cod]
+/*.egg-info/
 /.coverage
-/*.pyc
-/.tox/
-/blacknet.egg-info/
+/.mypy_cache/
+/.ruff_cache/
 /build/
+/coverage.xml
+/deps/
 /dist/
+/htmlcov/
+/output/
 /tests/generated/
 /venv/

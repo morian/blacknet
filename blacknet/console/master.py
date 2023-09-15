@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.7
-
 import os
 
 from signal import signal, getsignal, SIGINT, SIGTERM, SIGHUP
@@ -23,19 +21,18 @@ def blacknet_reload(signal, frame):
 
 
 def blacknet_write_pid(filename):
-    with open(filename, 'w') as fpid:
-        fpid.write("%d" % os.getpid())
-        fpid.close()
+    with open(filename, 'w') as fp:
+        fp.write(str(os.getpid()))
 
 
-if __name__ == '__main__':
+def run_master():
     parser = OptionParser()
     parser.add_option("-p", "--pidfile", dest="pidfile",
                       help="file to write pid to at startup", metavar="FILE")
     parser.add_option("-c", "--config", dest="config",
                       help="configuration file to use", metavar="FILE")
 
-    (options, arg) = parser.parse_args()
+    options, arg = parser.parse_args()
 
     # save current signal handlers
     sigint_handler = getsignal(SIGINT)

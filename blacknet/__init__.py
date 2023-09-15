@@ -27,16 +27,13 @@ from .master import BlacknetMasterServer
 from .scrubber import BlacknetScrubber
 from .sensor import BlacknetSensor
 from .updater import BlacknetGeoUpdater
+from .version import version
 
-VERSION = (2, 0, 10, None)
-threadsafety = 1
-
-__version__ = '.'.join(map(str, VERSION))
+__version__ = version
 __all__ = [
     'BlacknetMasterServer'
     'BlacknetScrubber',
     'BlacknetSensor',
     'BlacknetGeoUpdater',
-    'threadsafety',
     '__version__',
 ]

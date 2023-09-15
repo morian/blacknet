@@ -1,7 +1,10 @@
 include LICENSE
-include CHANGELOG
+include README.rst
+include CHANGELOG.md
 include share/blacknet.cfg.example
 include share/blacknet-sensor.cfg.example
 include share/blacklist.cfg.example
 include share/blacknet-install.sql
 include share/systemd/*
+global-exclude __pycache__
+global-exclude *.py[cod]

@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.7
-
 import logging
 import os
 import signal
@@ -14,14 +12,6 @@ running = True
 update = False
 
 
-# Log paramiko stuff to stdout.
-l = logging.getLogger("paramiko")
-l.setLevel(logging.WARNING)
-
-c = logging.StreamHandler(sys.stdout)
-l.addHandler(c)
-
-
 def blacknet_quit(signal, frame):
     """ exit this program in a clean way """
     global running
@@ -34,13 +24,19 @@ def blacknet_reload(signal, frame):
     update = True
 
 
-def blacknet_write_pid(filename):
-    with open(filename, 'w') as fpid:
-        fpid.write("%d" % os.getpid())
-        fpid.close()
+def blacknet_write_pid(filename: str):
+    with open(filename, 'w') as fp:
+        fp.write(str(os.getpid()))
 
 
-if __name__ == '__main__':
+def run_sensor():
+    # Log paramiko stuff to stdout.
+    l = logging.getLogger("paramiko")
+    l.setLevel(logging.WARNING)
+
+    c = logging.StreamHandler(sys.stdout)
+    l.addHandler(c)
+
     parser = OptionParser()
     parser.add_option("-p", "--pidfile", dest="pidfile",
                       help="file to write pid to at startup", metavar="FILE")

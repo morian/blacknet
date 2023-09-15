@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.7
-
 import os
 
 from optparse import OptionParser
@@ -23,8 +21,8 @@ def scrubber_options_parse():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
-    (options, arg) = scrubber_options_parse()
+def run_scrubber():
+    options, arg = scrubber_options_parse()
 
     bns = BlacknetScrubber(options.config)
     bns.verbosity = 2 if options.verbose else 1
