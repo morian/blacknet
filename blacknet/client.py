@@ -3,7 +3,7 @@ import socket
 import sys
 from contextlib import suppress
 from threading import Lock, RLock
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from msgpack import Packer, Unpacker
 
@@ -20,19 +20,21 @@ from .common import (
     BLACKNET_SSL_DEFAULT_PORT,
     BlacknetMsgType,
 )
+from .config import BlacknetConfig
+from .logger import BlacknetLogger
 from .sslif import BlacknetSSLInterface
 
 
 class BlacknetClient(BlacknetSSLInterface):
     """Holds all the underlying protocol exchanges with BlacknetMasterServer."""
 
-    def __init__(self, config, logger=None) -> None:
+    def __init__(self, config: BlacknetConfig, logger: Optional[BlacknetLogger] = None) -> None:
         """Initialize a new client for blacknet."""
         super().__init__(config, "honeypot")
         self.__logger = logger
         self.__server_hostname = None  # type: Optional[str]
-        self.__server_address = None  # type: Optional[tuple[str, int]]
-        self.__server_socket = None
+        self.__server_address = None  # type: Optional[Union[str, tuple[str, int]]]
+        self.__server_socket = None  # type: Optional[socket.socket]
         self.__server_error = False
         self.__client_name = None  # type: Optional[str]
         self.__connect_lock = RLock()
@@ -44,7 +46,7 @@ class BlacknetClient(BlacknetSSLInterface):
         """Ensure disconnection on delete."""
         self.disconnect()
 
-    def log(self, message: str, level=BLACKNET_LOG_DEFAULT) -> None:
+    def log(self, message: str, level: int = BLACKNET_LOG_DEFAULT) -> None:
         """Write something to the attached logger."""
         if self.__logger:
             self.__logger.write("Honeypot: %s" % message, level)
@@ -79,9 +81,9 @@ class BlacknetClient(BlacknetSSLInterface):
         return self._server_sockfile
 
     @property
-    def server_address(self) -> tuple[str, int]:
+    def server_address(self) -> Union[str, tuple[str, int]]:
         """Get the blacknet server address."""
-        if not self.__server_address:
+        if self.__server_address is None:
             self.__server_address = self.__get_server_address()
         return self.__server_address
 
@@ -113,7 +115,7 @@ class BlacknetClient(BlacknetSSLInterface):
         return self.__client_name
 
     @property
-    def _server_socket(self):
+    def _server_socket(self) -> socket.socket:
         send_handshake = False
 
         self.__connect_lock.acquire()
@@ -136,7 +138,7 @@ class BlacknetClient(BlacknetSSLInterface):
             self._send_handshake()
         return self.__server_socket
 
-    def _connect(self):
+    def _connect(self) -> socket.socket:
         """Connect to the BlacknetMasterServer (without explicit locking)."""
         tries = BLACKNET_CLIENT_CONN_RETRIES
 
@@ -170,7 +172,7 @@ class BlacknetClient(BlacknetSSLInterface):
             sock = self.ssl_context.wrap_socket(sock, server_hostname=self.server_hostname)
         return sock
 
-    def disconnect(self, goodbye=True):
+    def disconnect(self, goodbye: bool = True) -> None:
         """Disconnect from the blacknet server."""
         self.__connect_lock.acquire()
         if self.__server_socket:
@@ -186,7 +188,7 @@ class BlacknetClient(BlacknetSSLInterface):
             self.__server_socket = None
         self.__connect_lock.release()
 
-    def reload(self):
+    def reload(self) -> None:
         """Reload client configuration."""
         super().reload()
         self.__client_name = None
@@ -197,7 +199,7 @@ class BlacknetClient(BlacknetSSLInterface):
             self.__server_address = new_server_address
             self.disconnect()
 
-    def _recv_goodbye(self):
+    def _recv_goodbye(self) -> None:
         try:
             sock = self._server_socket
             acceptable = select.select([sock], [], [], BLACKNET_CLIENT_GOODBYE_TIMEOUT)
@@ -214,7 +216,7 @@ class BlacknetClient(BlacknetSSLInterface):
         except Exception as e:
             self.log_error("goodbye error: %s" % e)
 
-    def _send(self, msgtype, message=None):
+    def _send(self, msgtype: int, message: Any = None) -> None:
         data = [msgtype, message]
         sock = self._server_socket
 
@@ -227,15 +229,15 @@ class BlacknetClient(BlacknetSSLInterface):
             plen -= sent
             pdata = pdata[sent:]
 
-    def _send_handshake(self):
+    def _send_handshake(self) -> None:
         self._send(BlacknetMsgType.HELLO, BLACKNET_HELLO)
         if self.client_name:
             self._send(BlacknetMsgType.CLIENT_NAME, self.client_name)
 
-    def _send_goodbye(self):
+    def _send_goodbye(self) -> None:
         self._send(BlacknetMsgType.GOODBYE)
 
-    def _send_retry(self, msgtype, message, tries=2):
+    def _send_retry(self, msgtype: int, message: Any, tries: int = 2) -> None:
         while tries > 0:
             self.__send_lock.acquire()
             try:
@@ -247,15 +249,15 @@ class BlacknetClient(BlacknetSSLInterface):
             finally:
                 self.__send_lock.release()
 
-    def send_ssh_credential(self, data):
+    def send_ssh_credential(self, data: dict[str, Any]) -> None:
         """Send SSH credentials to the blacknet server."""
         self._send_retry(BlacknetMsgType.SSH_CREDENTIAL, data)
 
-    def send_ssh_publickey(self, data):
+    def send_ssh_publickey(self, data: dict[str, Any]) -> None:
         """Send SSH public key to the blacknet server."""
         self._send_retry(BlacknetMsgType.SSH_PUBLICKEY, data)
 
-    def send_ping(self):
+    def send_ping(self) -> None:
         """Send a keep-alive probe to the server."""
         answered = False
 

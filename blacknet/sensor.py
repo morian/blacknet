@@ -3,7 +3,8 @@ import socket
 import time
 from binascii import hexlify
 from contextlib import suppress
-from threading import Event, Lock, Thread
+from threading import Event, Lock
+from typing import Any, Optional
 
 import paramiko
 from paramiko import RSAKey
@@ -22,17 +23,17 @@ from .common import (
     BLACKNET_SSH_DEFAULT_LISTEN,
     blacknet_ensure_unicode,
 )
-from .server import BlacknetServer
+from .server import BlacknetServer, BlacknetThread
 
 
 class BlacknetSSHSession(paramiko.ServerInterface):
     """SSH session to collect data from."""
 
-    def __init__(self, transport, blacknet):
+    def __init__(self, transport: paramiko.Transport, blacknet: BlacknetClient) -> None:
         """Handle a new SSH attack session."""
         self.__transport = transport
-        self.__client_version = None
-        self.__peer_name = None
+        self.__client_version = None  # type: Optional[str]
+        self.__peer_name = None  # type: Optional[str]
         self.__allowed_auths = ["publickey", "password"]
         self.auth_failed_count = 0
         # This needs to be a user-configured value at some point.
@@ -40,7 +41,7 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         self.blacknet = blacknet
 
     @property
-    def peer_name(self):
+    def peer_name(self) -> str:
         """Get the peer name."""
         if not self.__peer_name:
             peer = self.__transport.getpeername()
@@ -48,34 +49,35 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         return self.__peer_name
 
     @property
-    def client_version(self):
+    def client_version(self) -> str:
         """Get the banner from the remote attacker."""
         if not self.__client_version:
             self.__client_version = self.__transport.remote_version
         return self.__client_version
 
-    def get_allowed_auths(self, username):
+    def get_allowed_auths(self, username: str) -> str:
         """Allowed authentication methods."""
         return ",".join(self.__allowed_auths)
 
-    def __auth_common_obj(self, username: str):
-        obj = {}
+    def __auth_common_obj(self, username: str) -> dict[str, Any]:
+        obj = {}  # type: dict[str, Any]
         obj["client"] = self.peer_name
         obj["version"] = blacknet_ensure_unicode(self.client_version)
         obj["user"] = blacknet_ensure_unicode(username)
         obj["time"] = int(time.time())
         return obj
 
-    def __auth_failed_inc(self):
+    def __auth_failed_inc(self) -> None:
         # reset the auth_fail counter to be able to handle faster retries
         self.auth_failed_count += 1
+        auth_handler = self.__transport.auth_handler
+        if auth_handler is not None:
+            if self.auth_failed_count >= self.auth_failed_limit:
+                auth_handler.auth_fail_count = 1000
+            else:
+                auth_handler.auth_fail_count = 0
 
-        if self.auth_failed_count >= self.auth_failed_limit:
-            self.__transport.auth_handler.auth_fail_count = 1000
-        else:
-            self.__transport.auth_handler.auth_fail_count = 0
-
-    def check_auth_password(self, username, password):
+    def check_auth_password(self, username: str, password: str) -> int:
         """Handle a password authentication."""
         with suppress(BaseException):
             obj = self.__auth_common_obj(username)
@@ -85,7 +87,7 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         self.__auth_failed_inc()
         return AUTH_FAILED
 
-    def check_auth_publickey(self, username, key):
+    def check_auth_publickey(self, username: str, key: paramiko.PKey) -> int:
         """Handle a public key authentication."""
         # remove publickey authentication after one call.
         self.__allowed_auths.remove("publickey")
@@ -112,19 +114,19 @@ class BlacknetSensor(BlacknetServer):
     # default listening interface when no config is found.
     _default_listen = BLACKNET_SSH_DEFAULT_LISTEN
 
-    def __init__(self, cfg_file=None):
+    def __init__(self, cfg_file: Optional[str] = None) -> None:
         """Create a new SSH sensor."""
         super().__init__("honeypot", cfg_file)
-        self.__ssh_banner = None
+        self.__ssh_banner = None  # type: Optional[str]
 
-        self.ssh_host_key = None
-        self.ssh_host_hash = None
+        self.ssh_host_key = None  # type: Optional[RSAKey]
+        self.ssh_host_hash = None  # type: Optional[str]
         self.__ssh_private_key_check()
 
         self.blacknet = BlacknetClient(self.config, self._logger)
 
     @property
-    def ssh_banner(self):
+    def ssh_banner(self) -> str:
         """SSH banner to expose to attackers."""
         if not self.__ssh_banner:
             if self.has_config("ssh_banner"):
@@ -133,7 +135,7 @@ class BlacknetSensor(BlacknetServer):
                 self.__ssh_banner = BLACKNET_SSH_DEFAULT_BANNER
         return self.__ssh_banner
 
-    def __ssh_private_key_check(self):
+    def __ssh_private_key_check(self) -> None:
         prvfile = self.get_config("ssh_keys")
         pubfile = "%s.pub" % prvfile
         prv = None
@@ -163,34 +165,34 @@ class BlacknetSensor(BlacknetServer):
         self.ssh_host_hash = hexlify(prv.get_fingerprint()).decode("ascii")
         self.log_info("SSH fingerprint: %s" % self.ssh_host_hash)
 
-    def reload(self):
+    def reload(self) -> None:
         """Reload server configuration."""
         super().reload()
         self.__ssh_private_key_check()
         self.blacknet.reload()
 
-    def do_ping(self):
+    def do_ping(self) -> None:
         """Send a ping request to the server."""
         # Send ping only on real TCP links (not local sockets).
         if not self.blacknet.server_is_sockfile:
             self.blacknet.send_ping()
 
-    def serve(self):
+    def serve(self) -> None:  # type: ignore[override]
         """Serve new connections into new threads."""
         super().serve(BlacknetSensorThread, BLACKNET_PING_INTERVAL, self.do_ping)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Close the sensor, disconnect from everything."""
         self.blacknet.disconnect()
         super().shutdown()
 
 
-class BlacknetSensorThread(Thread):
+class BlacknetSensorThread(BlacknetThread):
     """Separate thread to handle SSH incoming connection requests."""
 
-    def __init__(self, bns, client):
+    def __init__(self, bns: BlacknetSensor, client: socket.socket) -> None:
         """Spawn a new sensor thread to handle a SSH client."""
-        super().__init__()
+        super().__init__(bns, client)
 
         self.started = False
         self.__connection_lock = Lock()
@@ -199,14 +201,14 @@ class BlacknetSensorThread(Thread):
         peername = client.getpeername()
         self.__peer_ip = peername[0] if peername else "local"
         self.__client = client
-        self.__transport = None
+        self.__transport = None  # type: Optional[paramiko.Transport]
         self.__auth_retries = 0
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Disconnect on thread deletion."""
         self.disconnect()
 
-    def run(self):
+    def run(self) -> None:
         """Thread entry point."""
         self.started = True
         self.log_debug("SSH: starting session")
@@ -215,7 +217,8 @@ class BlacknetSensorThread(Thread):
         t.local_version = self.__bns.ssh_banner
         with suppress(BaseException):
             t.load_server_moduli()
-        t.add_server_key(self.__bns.ssh_host_key)
+        if self.__bns.ssh_host_key is not None:
+            t.add_server_key(self.__bns.ssh_host_key)
         self.__transport = t
 
         ssh_server = BlacknetSSHSession(t, self.__bns.blacknet)
@@ -227,25 +230,25 @@ class BlacknetSensorThread(Thread):
         self.__auth_retries = ssh_server.auth_failed_count
         self.disconnect()
 
-    def log(self, message: str, level=BLACKNET_LOG_DEFAULT) -> None:
+    def log(self, message: str, level: int = BLACKNET_LOG_DEFAULT) -> None:
         """Write something to the attached logger."""
         if self.__bns._logger:
             peername = "%s" % (self.__peer_ip)
             self.__bns._logger.write(f"{peername}: {message}", level)
 
-    def log_error(self, message):
+    def log_error(self, message: str) -> None:
         """Write an error message to the logger."""
         self.log(message, BLACKNET_LOG_ERROR)
 
-    def log_info(self, message):
+    def log_info(self, message: str) -> None:
         """Write an informational message to the logger."""
         self.log(message, BLACKNET_LOG_INFO)
 
-    def log_debug(self, message):
+    def log_debug(self, message: str) -> None:
         """Write a debug message to the logger."""
         self.log(message, BLACKNET_LOG_DEBUG)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from the SSH attacker."""
         with self.__connection_lock:
             if self.__transport:
@@ -253,10 +256,8 @@ class BlacknetSensorThread(Thread):
                 self.log_debug(f"SSH: stopping session ({auth_retries} failed retries)")
                 self.__transport.close()
                 self.__transport = None
-                self.__client = None
 
             if self.__client:
                 with suppress(OSError):
                     self.__client.shutdown(socket.SHUT_RDWR)
                 self.__client.close()
-                self.__client = None
