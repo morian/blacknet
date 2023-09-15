@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import time
+from typing import Any, Callable, Optional
 from urllib.request import urlretrieve
 
 from .common import blacknet_gethostbyaddr, blacknet_int_to_ip
@@ -14,7 +15,7 @@ WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 class BlacknetScrubber(BlacknetConfigurationInterface):
     """Blacknet database scrubber."""
 
-    def __init__(self, cfg_file=None):
+    def __init__(self, cfg_file: Optional[str] = None) -> None:
         """Instanciate a new blacknet scrubber to fix errors."""
         config = BlacknetConfig()
         config.load(cfg_file)
@@ -23,24 +24,24 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         self.__database = BlacknetDatabase(config)
         self.__verbosity = 2
         self.__do_fix = False
-        self.__cache_path = None
-        self.__alive_delta = None
-        self.__recent_delta = None
-        self.__alive_threshold = None
-        self.__recent_threshold = None
-        self.__targets = []
+        self.__cache_path = None  # type: Optional[str]
+        self.__alive_delta = None  # type: Optional[int]
+        self.__recent_delta = None  # type: Optional[int]
+        self.__alive_threshold = None  # type: Optional[int]
+        self.__recent_threshold = None  # type: Optional[int]
+        self.__targets = []  # type: list[tuple[str, int, int]]
 
-    def log_error(self, message):
+    def log_error(self, message: str) -> None:
         """Log a new error to stderr."""
         if self.__verbosity > 0:
             sys.stderr.write("%s\n" % message)
 
-    def log_action(self, message):
+    def log_action(self, message: str) -> None:
         """Log a new performed action to stdout."""
         suffix = " (DRY-RUN)" if not self.__do_fix else ""
         self.log_progress(f"{message}{suffix}")
 
-    def log_progress(self, message):
+    def log_progress(self, message: str) -> None:
         """Log progress to stdout (verbose)."""
         if self.__verbosity > 1:
             sys.stdout.write("%s\n" % message)
@@ -61,18 +62,18 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         return self.__do_fix
 
     @do_fix.setter
-    def do_fix(self, val) -> None:
+    def do_fix(self, val: bool) -> None:
         """Set whether we run in fix mode."""
         self.__do_fix = val
 
-    def __timed_check(self, action, args, message):
+    def __timed_check(self, action: Callable[..., Any], args: list[Any], message: str) -> Any:
         time_start = time.time()
         res = action(*args)
         time_diff = time.time() - time_start
         self.log_progress(f"[+] Checked {message} ({time_diff:.1f}s)")
         return res
 
-    def __check_attackers(self):
+    def __check_attackers(self) -> None:
         cursor = self.__database.cursor()
         for atk_id in cursor.missing_attackers():
             ip = blacknet_int_to_ip(atk_id)
@@ -93,11 +94,11 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
                 args = (atk_id, ip, dns, first_seen, last_seen, locid, count)
                 cursor.insert_attacker(args)
 
-    def check_attackers(self):
+    def check_attackers(self) -> None:
         """Check all attacker consistency."""
         self.__timed_check(self.__check_attackers, [], "missing attackers")
 
-    def __check_attempts_count(self, target):
+    def __check_attempts_count(self, target: str) -> None:
         """Checks for inconsistency and auto-repair."""
         cursor = self.__database.cursor()
         for t_id, current, computed in cursor.missing_attempts_count(target):
@@ -107,12 +108,12 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             if self.__do_fix:
                 cursor.update_attempts_count(target, t_id, computed)
 
-    def check_attempts_count(self, target):
+    def check_attempts_count(self, target: str) -> None:
         """Check attempt counters consistencies."""
         message = "%s attempts counters" % target
         self.__timed_check(self.__check_attempts_count, [target], message)
 
-    def __check_attempts_dates(self, target):
+    def __check_attempts_dates(self, target: str) -> None:
         cursor = self.__database.cursor()
         for data in cursor.missing_dates(target):
             (t_id, v_fs, v_ls, c_fs, c_ls) = data
@@ -122,12 +123,12 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
                 if self.__do_fix:
                     cursor.update_dates(target, t_id, c_fs, c_ls)
 
-    def check_attempts_dates(self, target):
+    def check_attempts_dates(self, target: str) -> None:
         """Check data consistency."""
         message = "%s dates consistency" % target
         self.__timed_check(self.__check_attempts_dates, [target], message)
 
-    def __check_geolocations(self):
+    def __check_geolocations(self) -> None:
         cursor = self.__database.cursor()
         for atk_id, locid in cursor.get_attackers_location():
             nlocid = cursor.get_locid(atk_id)
@@ -137,15 +138,15 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
                 if self.__do_fix:
                     cursor.update_attacker_location(atk_id, nlocid)
 
-    def check_geolocations(self):
+    def check_geolocations(self) -> None:
         """Check geolocation consistency."""
         self.__timed_check(self.__check_geolocations, [], "geolocation coherency")
 
-    def __database_optimize(self, table):
+    def __database_optimize(self, table: str) -> None:
         cursor = self.__database.cursor()
         cursor.optimize(table)
 
-    def database_optimize(self):
+    def database_optimize(self) -> None:
         """Optimize the database."""
         if self.__do_fix:
             for table in ["attackers", "sessions", "blocks", "locations"]:
@@ -159,46 +160,46 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         return self.__cache_path
 
     @property
-    def alive_delta(self):
+    def alive_delta(self) -> int:
         """For how many seconds we consider something alive."""
         if not self.__alive_delta:
             self.__alive_delta = int(self.get_config("alive_delta"))
         return self.__alive_delta
 
     @property
-    def recent_delta(self):
+    def recent_delta(self) -> int:
         """For how many seconds we consider something recent."""
         if not self.__recent_delta:
             self.__recent_delta = int(self.get_config("recent_delta"))
         return self.__recent_delta
 
     @property
-    def alive_threshold(self):
+    def alive_threshold(self) -> int:
         """Get the alive threshold."""
         if not self.__alive_threshold:
             self.__alive_threshold = int(time.time() - 24 * 3600 * self.alive_delta)
         return self.__alive_threshold
 
     @property
-    def recent_threshold(self):
+    def recent_threshold(self) -> int:
         """Get the recent threshold."""
         if not self.__recent_threshold:
             self.__recent_threshold = int(time.time() - 24 * 3600 * self.recent_delta)
         return self.__recent_threshold
 
-    def __timed_generation(self, action, filepath):
+    def __timed_generation(self, action: Callable[..., Any], filepath: str) -> Any:
         time_start = time.time()
         res = action(filepath)
         time_diff = time.time() - time_start
         self.log_progress(f"[+] Generated file \'{filepath}\' ({time_diff:.1f}s)")
         return res
 
-    def __json_export(self, filepath, data):
+    def __json_export(self, filepath: str, data: list[Any]) -> None:
         path = os.path.join(self.cache_path, filepath)
         with open(path, "w") as f:
             f.write(json.dumps({"data": data}))
 
-    def __generate_targets(self, filepath):
+    def __generate_targets(self, filepath: str) -> None:
         cursor = self.__database.cursor()
         query = (
             "SELECT target, UNIX_TIMESTAMP(MAX(last_attempt)) > %s, "
@@ -210,18 +211,18 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             self.__targets = cursor.fetchall()
             self.__json_export(filepath, self.__targets)
 
-    def generate_targets(self):
+    def generate_targets(self) -> None:
         """Generate the target report."""
         self.__timed_generation(self.__generate_targets, "targets.json")
 
-    def __query_wrapper(self, query):
+    def __query_wrapper(self, query: str) -> Optional[list[Any]]:
         cursor = self.__database.cursor()
         res = cursor.execute(query)
         if res:
             return cursor.fetchall()
         return None
 
-    def __query_to_file(self, query, dest):
+    def __query_to_file(self, query: str, dest: str) -> None:
         """Get the result of query to JSON in file."""
         time_start = time.time()
 
@@ -235,9 +236,9 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         else:
             self.log_progress(f"[-] No JSON data for file {dest} ({time_diff:.1f}s).")
 
-    def generate_stats(self):
+    def generate_stats(self) -> None:
         """Generate the big statistics JSON file."""
-        queries = {}
+        queries = {}  # type: dict[str, str]
         queries["stats_logins"] = (
             "SELECT user, COUNT(*) "
             "FROM attempts "
@@ -280,8 +281,8 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         )
 
         # Only select recent targets.
-        for target in [x[0] for x in self.__targets if (x[1] or self.__do_fix)]:
-            filename = "stats_countries_%s" % target
+        for str_target in [x[0] for x in self.__targets if (x[1] or self.__do_fix)]:
+            filename = "stats_countries_%s" % str_target
 
             # Applying the filter this way is much faster.
             queries[filename] = (
@@ -297,7 +298,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
                 'JOIN countries ON locations.country = countries.code '
                 'GROUP BY countries.code '
                 'ORDER BY c DESC '
-                'LIMIT 10;' % self.__database.escape_string(target)
+                'LIMIT 10;' % self.__database.escape_string(str_target)
             )
 
         queries["stats_breakin"] = (
@@ -355,7 +356,13 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
                     data[i[0]] += i[1]
                 self.__bar_chart(data, filename, time_start)
 
-    def __bar_chart(self, data, name, time_start, label=None):
+    def __bar_chart(
+        self,
+        data: list[Any],
+        name: str,
+        time_start: float,
+        label: Optional[list[str]] = None,
+    ) -> None:
         """Generate bar charts from data."""
         max_val = max(data)
 
@@ -385,7 +392,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         time_diff = time.time() - time_start
         self.log_progress(f"[+] Bar char {name} generated ({time_diff:0.1f}s)")
 
-    def __generate_minimap(self, target=None):
+    def __generate_minimap(self, target: Optional[str] = None) -> bool:
         """Generate the minimap for virtual machine target."""
         time_start = time.time()
 
@@ -455,13 +462,13 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             self.log_progress("[+] Global minimap generated (%.2fs)." % time_diff)
         return True
 
-    def generate_minimaps(self):
+    def generate_minimaps(self) -> None:
         """Generate the minimap using google APIs."""
         self.__generate_minimap()
         for target in [x[0] for x in self.__targets if (x[2] or self.__do_fix)]:
             self.__generate_minimap(target)
 
-    def __generate_map_data(self, target=None):
+    def __generate_map_data(self, target: Optional[str] = None) -> None:
         self.__database.cursor()
         suffix = "_%s" % target if target else ""
 
@@ -521,7 +528,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         for filepath in queries:
             self.__query_to_file(queries[filepath], filepath + ".json")
 
-    def generate_map_data(self):
+    def generate_map_data(self) -> None:
         """Generate full map data."""
         self.__generate_map_data()
         for target in [x[0] for x in self.__targets if (x[2] or self.__do_fix)]:
