@@ -5,6 +5,9 @@ import shutil
 import sys
 import tempfile
 import zipfile
+from codecs import StreamReaderWriter
+from collections.abc import Iterator
+from typing import Optional
 from urllib.request import urlopen
 
 from .config import BlacknetConfig, BlacknetConfigurationInterface
@@ -13,7 +16,7 @@ from .database import BlacknetDatabase
 GEOLITE_CSV_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip"
 
 
-def utf8_ensure(csv_file):
+def utf8_ensure(csv_file: StreamReaderWriter) -> Iterator[str]:
     """Ensure these lines are UTF-8."""
     for line in csv_file:
         # Those lines are 'unicode' in python2
@@ -25,20 +28,18 @@ def utf8_ensure(csv_file):
 class BlacknetGeoUpdater(BlacknetConfigurationInterface):
     """Blacknet geolocation database updater."""
 
-    def __init__(self, cfg_file=None):
+    def __init__(self, cfg_file: Optional[str] = None):
         """Load configuration file and database parameters."""
-        self.__database = None
-        self.__dirname = None
-        self.__filepath = {}
-        self.__test_mode = None
+        self.__dirname = None  # type: Optional[str]
+        self.__filepath = {}  # type: dict[str, str]
+        self.__test_mode = None  # type: Optional[bool]
 
         config = BlacknetConfig()
         config.load(cfg_file)
+        self.__database = BlacknetDatabase(config)
         BlacknetConfigurationInterface.__init__(self, config, "server")
 
-        self.__database = BlacknetDatabase(config)
-
-    def __del__(self):
+    def __del__(self) -> None:
         """Remove temporary directories upon deletion."""
         if not self.test_mode:
             dirname = self.__dirname
@@ -70,11 +71,11 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
                 self.__dirname = tempfile.mkdtemp()
         return self.__dirname
 
-    def log(self, message):
+    def log(self, message: str) -> None:
         """Write something stdout."""
         sys.stdout.write("%s\n" % message)
 
-    def fetch_zip(self):
+    def fetch_zip(self) -> None:
         """Fetch the zip file on the internets."""
         if not self.test_mode:
             zip_file = os.path.join(self.dirname, "geolitecity.zip")
@@ -87,7 +88,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
         self.log("[+] Fetched zipfile successfully")
 
-    def extract_zip(self):
+    def extract_zip(self) -> None:
         """Extract the downloaded zip file."""
         zip_dir = os.path.join(self.dirname, "geolitecity")
         if not os.path.exists(zip_dir):
@@ -107,7 +108,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
             self.log("[+] Extracted file %s" % item)
         zip_ref.close()
 
-    def csv_blocks_import(self):
+    def csv_blocks_import(self) -> None:
         """Import the new block table."""
         block_file = self.__filepath["blocks"]
         block_f = codecs.open(block_file, "r", "latin1")
@@ -128,7 +129,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
         self.log("[+] Updated blocks table (%u entries)" % (line_count - 2))
 
-    def csv_locations_import(self):
+    def csv_locations_import(self) -> None:
         """Import the new location table."""
         block_file = self.__filepath["locations"]
         block_f = codecs.open(block_file, "r", "latin1")
@@ -149,12 +150,12 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
         self.log("[+] Updated locations table (%u entries)" % (line_count - 2))
 
-    def csv_to_database(self):
+    def csv_to_database(self) -> None:
         """Import CSV files to the database."""
         self.csv_blocks_import()
         self.csv_locations_import()
 
-    def update(self):
+    def update(self) -> None:
         """Perform the whole update process."""
         self.fetch_zip()
         self.extract_zip()

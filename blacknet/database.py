@@ -180,7 +180,7 @@ class BlacknetDatabaseCursor:
         """Optimize the provided table."""
         return self.execute("OPTIMIZE TABLE %s;" % table)
 
-    def insert_block(self, row: tuple[int, int, int]) -> None:
+    def insert_block(self, row: Collection[Any]) -> None:
         """Insert a new geolocation block to the database."""
         query = "INSERT INTO `blocks` (startIpNum,endIpNum,locId) VALUES (%s,%s,%s);"
         return self.execute(query, row)
