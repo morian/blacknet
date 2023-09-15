@@ -28,7 +28,11 @@ from .sslif import BlacknetSSLInterface
 class BlacknetClient(BlacknetSSLInterface):
     """Holds all the underlying protocol exchanges with BlacknetMasterServer."""
 
-    def __init__(self, config: BlacknetConfig, logger: Optional[BlacknetLogger] = None) -> None:
+    def __init__(
+        self,
+        config: BlacknetConfig,
+        logger: Optional[BlacknetLogger] = None,
+    ) -> None:
         """Initialize a new client for blacknet."""
         super().__init__(config, "honeypot")
         self.__logger = logger

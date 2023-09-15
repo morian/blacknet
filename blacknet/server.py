@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import errno
 import grp
 import os
@@ -5,7 +7,7 @@ import pwd
 import select
 import socket
 from threading import Thread
-from typing import Callable, Optional, Union, Type, TypeVar
+from typing import Callable, Optional, Union
 
 from .common import (
     BLACKNET_LOG_CRITICAL,
@@ -34,7 +36,7 @@ class BlacknetThread(Thread):
 
     def disconnect(self) -> None:
         """Disconnect from the client."""
-        return None
+        return
 
 
 class BlacknetServer(BlacknetConfigurationInterface):
@@ -43,13 +45,13 @@ class BlacknetServer(BlacknetConfigurationInterface):
     # default listening interface when no config is found.
     _default_listen = BLACKNET_SSL_DEFAULT_LISTEN
 
-    def __init__(self, role: str, cfg_file: Optional[str] = None) -> None:
+    def __init__(self, role: str, cfg_file: str | None = None) -> None:
         """Instanciate a new blacknet server."""
         self.__listen_interfaces = None  # type: Optional[list[ListenInterfaceType]]
         self.__socket_permissions = None  # type: Optional[SocketPermissionType]
 
         self._interfaces = {}  # type: dict[ListenInterfaceType, socket.socket]
-        self._threads = []     # type: list[BlacknetThread]
+        self._threads = []  # type: list[BlacknetThread]
 
         config = BlacknetConfig()
         config.load(cfg_file)
@@ -67,7 +69,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
         return self._logger
 
     @property
-    def socket_permissions(self) -> tuple[Optional[str], Optional[str], Optional[int]]:
+    def socket_permissions(self) -> tuple[str | None, str | None, int | None]:
         """Get socket permissions."""
         socket_permissions = self.__socket_permissions
         if socket_permissions is None:
@@ -237,9 +239,9 @@ class BlacknetServer(BlacknetConfigurationInterface):
 
     def serve(
         self,
-        threadclass: Type[BlacknetThread] = BlacknetThread,
-        timeout: Optional[float] = None,
-        timefunc: Optional[TimeFunc] = None,
+        threadclass: type[BlacknetThread] = BlacknetThread,
+        timeout: float | None = None,
+        timefunc: TimeFunc | None = None,
     ) -> None:
         """Serve new connections into new threads."""
         self._threads_cleanup()

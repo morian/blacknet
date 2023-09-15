@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import warnings
+from collections.abc import Collection, Iterable
 from contextlib import suppress
 from threading import Lock
-from typing import Any, Collection, Iterable, Optional
+from typing import Any, Optional
 
 import pymysql
 
@@ -23,7 +26,7 @@ DbConnectionParams = tuple[Optional[str], Optional[str], str, str, str]
 class BlacknetDatabaseCursor:
     """Database cursor wrapper for Mysqldb interactions."""
 
-    def __init__(self, bnd: BlacknetDatabase, logger: Optional[BlacknetLogger] = None) -> None:
+    def __init__(self, bnd: BlacknetDatabase, logger: BlacknetLogger | None = None) -> None:
         """Initialize a new Blacknet Database Cursor from a Mysqldb cursor."""
         self.__bnd = bnd
         self.__logger = logger
@@ -33,7 +36,7 @@ class BlacknetDatabaseCursor:
         """Close the cursor database on instance deletion."""
         self.__cursor.close()
 
-    def execute(self, query: str, args: Optional[Iterable[Any]] = None) -> Any:
+    def execute(self, query: str, args: Iterable[Any] | None = None) -> Any:
         """Execute generic queries to the database."""
         return self.__cursor.execute(query, args)
 
@@ -124,7 +127,7 @@ class BlacknetDatabaseCursor:
         )
         return self.execute(query, [time, atk_id, time])
 
-    def check_pubkey(self, fp: str) -> Optional[int]:
+    def check_pubkey(self, fp: str) -> int | None:
         """Find the current ID for the provided pubkey fingerprint."""
         query = "SELECT id FROM `pubkeys` WHERE fingerprint = %s;"
         res = self.execute(query, [fp])
@@ -132,7 +135,7 @@ class BlacknetDatabaseCursor:
             return self.fetchone()[0]
         return None
 
-    def check_attacker(self, aid: int) -> Optional[tuple[int, int]]:
+    def check_attacker(self, aid: int) -> tuple[int, int] | None:
         """Fetch first_seen and last_seen from the provided attacker id."""
         query = (
             "SELECT UNIX_TIMESTAMP(first_seen), UNIX_TIMESTAMP(last_seen) "
@@ -143,7 +146,7 @@ class BlacknetDatabaseCursor:
             return self.fetchone()
         return None
 
-    def check_session(self, atk_id: int, sensor: str) -> Optional[tuple[int, int]]:
+    def check_session(self, atk_id: int, sensor: str) -> tuple[int, int] | None:
         """List all sessions and last attempts for a provided attacker id."""
         query = (
             "SELECT id, UNIX_TIMESTAMP(last_attempt) "
@@ -208,7 +211,7 @@ class BlacknetDatabaseCursor:
             return [a[0] for a in self.fetchall()]
         return []
 
-    def recompute_attacker_info(self, atk_id: int) -> Optional[tuple[int, int, int]]:
+    def recompute_attacker_info(self, atk_id: int) -> tuple[int, int, int] | None:
         """Recompute all fields from a provided attacker."""
         query = (
             "SELECT UNIX_TIMESTAMP(MIN(date)), UNIX_TIMESTAMP(MAX(date)), COUNT(*) "
@@ -272,7 +275,7 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
     def __init__(
         self,
         config: BlacknetConfig,
-        logger: Optional[BlacknetLogger] = None,
+        logger: BlacknetLogger | None = None,
     ) -> None:
         """Get logger and configuration structures from the caller."""
         BlacknetConfigurationInterface.__init__(self, config, "mysql")
@@ -330,7 +333,7 @@ class BlacknetDatabase(BlacknetConfigurationInterface):
             self.__connection_parameters = params
             self.disconnect()
 
-    def connect(self, params: Optional[DbConnectionParams] = None) -> None:
+    def connect(self, params: DbConnectionParams | None = None) -> None:
         """Connect to the database."""
         if not params:
             params = self.connection_parameters

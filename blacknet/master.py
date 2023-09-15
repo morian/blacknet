@@ -22,7 +22,6 @@ from .common import (
 )
 from .config import BlacknetBlacklist
 from .database import BlacknetDatabase, BlacknetDatabaseCursor
-from .logger import BlacknetLogger
 from .server import BlacknetServer, BlacknetThread
 from .sslif import BlacknetSSLInterface
 
