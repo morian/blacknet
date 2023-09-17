@@ -1,5 +1,13 @@
 # Blacknet changelog
 
+## [2.1.0] - UNRELEASED
+- SQL: add a default value for notes on attackers
+- Drop compability with Python2, ensure compatibility up to Python3.11
+- Upgrade the build system to use `pyproject.toml` with setuptools
+- Move console scripts to specific targets within the module
+- Add typing annotations on the blacknet module
+- Add linting using `ruff`, `isort` and `black`
+
 ## [2.0.9] - 2017-08-29
 - Fix ping issues when server is not reachable
 - Ensure credentials encoding while transmitting to master server

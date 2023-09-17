@@ -3,16 +3,6 @@
 Blacknet 2
 ==========
 
-.. image:: https://travis-ci.org/morian/blacknet.svg?branch=master
-  :target: https://travis-ci.org/morian/blacknet
-
-.. image:: https://coveralls.io/repos/github/morian/blacknet/badge.svg?branch=master
-  :target: https://coveralls.io/github/morian/blacknet?branch=master
-
-.. image:: https://img.shields.io/badge/license-MIT-blue.svg
-  :target: https://github.com/morian/blacknet/blob/master/LICENSE
-
-
 What
 ----
 
@@ -28,7 +18,7 @@ honeypots, which IP addresses are targeting you and from where.
 Requirements
 ------------
 * Python dependencies:
-	- CPython_ >= 3.8
+	- CPython_ >= 3.9
 	- MsgPack_ >= 1.0.0
 	- PyMySQL_
 	- Paramiko_
@@ -40,9 +30,9 @@ Requirements
 .. _CPython: https://www.python.org
 .. _MsgPack: https://msgpack.org
 .. _PyMySQL: https://github.com/PyMySQL/PyMySQL
-.. _Paramiko: http://www.paramiko.org
-.. _MySQL: http://www.mysql.com/
-.. _MariaDB: https://mariadb.org/
+.. _Paramiko: https://www.paramiko.org
+.. _MySQL: https://www.mysql.com
+.. _MariaDB: https://mariadb.org
 
 
 Installation
@@ -129,7 +119,7 @@ This project was initially conducted during our engineering studies in 2010.
 It was rewritten in 2017 to lower maintenance and installation efforts and to
 fit with modern python programming standards.
 
-.. _Cowrie: http://github.com/micheloosterhof/cowrie/
+.. _Cowrie: https://github.com/micheloosterhof/cowrie/
 
 
 Credits
