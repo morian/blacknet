@@ -75,7 +75,7 @@ python3-tests:
     - source venv/bin/activate
     - make install-testing
   script:
-    - bash tests/db-setup.sh database blacknet blacknet blacknet blacknet
+    - sh tests/db-setup.sh database blacknet blacknet blacknet blacknet
     - sed -i 's/host = localhost/host = database/' tests/blacknet.cfg
     - coverage run runtests.py
     - coverage xml
