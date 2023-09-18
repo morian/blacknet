@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := all
-sources = blacknet
+sources = blacknet runtests.py
 
 .PHONY: install-linting
 install-linting:

@@ -1,80 +1,71 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from threading import Thread, Lock
-from signal import signal, SIGINT, SIGTERM
-from time import sleep
 
 import json
 import logging
 import os
-import paramiko
 import socket
 import sys
+from contextlib import suppress
+from threading import Thread
 
-from blacknet.sensor import BlacknetSensor
+import paramiko
+
 from blacknet.master import BlacknetMasterServer
-from blacknet.updater import BlacknetGeoUpdater
 from blacknet.scrubber import BlacknetScrubber
+from blacknet.sensor import BlacknetSensor
+from blacknet.server import BlacknetServer  # noqa: F401
+from blacknet.updater import BlacknetGeoUpdater
+
+SCRUBBER_STATS_FILE = "tests/generated/stats_general.json"
+HONEYPOT_CONFIG_FILE = "tests/blacknet-honeypot.cfg"
+MASTER_CONFIG_FILE = "tests/blacknet.cfg"
+CLIENT_SSH_KEY = "tests/ssh_key"
 
 
-SCRUBBER_STATS_FILE='tests/generated/stats_general.json'
-HONEYPOT_CONFIG_FILE='tests/blacknet-honeypot.cfg'
-MASTER_CONFIG_FILE='tests/blacknet.cfg'
-CLIENT_SSH_KEY='tests/ssh_key'
-
-
-# Log paramiko stuff to stdout.
-l = logging.getLogger("paramiko")
-l.setLevel(logging.WARNING)
-
-c = logging.StreamHandler(sys.stdout)
-l.addHandler(c)
-
-
-def runtests_ssh_serve(bns):
+def runtests_ssh_serve(bns: BlacknetSensor) -> None:
+    """Thread entry point, runs the sensor."""
     bns.do_ping()
     bns.serve()
 
 
-def runtests_main_serve(bns):
+def runtests_main_serve(bns: BlacknetMasterServer) -> None:
+    """Thread entry point, runs the master server."""
     bns.serve()
 
 
-def runtests_ssh_client():
+def runtests_ssh_client() -> None:
+    """Simulate a real SSH client trying to authenticate."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('localhost', 2200))
+    sock.connect(("localhost", 2200))
 
     t = paramiko.Transport(sock)
     t.start_client()
 
-    try:
+    with suppress(BaseException):
         ssh_key = paramiko.RSAKey(filename=CLIENT_SSH_KEY)
-        t.auth_publickey('blacknet', ssh_key)
-    except:
-        pass
+        t.auth_publickey("blacknet", ssh_key)
 
-    for suffix in ['0', '1', 'a', 'b', 'c', 'é', '&', 'L', ')', '€', '\xfe', '\xa8']:
-        try:
-            password = 'password_%s' % suffix
-            t.auth_password('blacknet', password)
-        except Exception as e:
-            pass
+    for suffix in ["0", "1", "a", "b", "c", "é", "&", "L", ")", "€", "\xfe", "\xa8"]:
+        with suppress(Exception):
+            password = "password_%s" % suffix
+            t.auth_password("blacknet", password)
     t.close()
 
 
-def runtests_update():
+def runtests_update() -> None:
+    """Update database geolocation from local samples."""
     bnu = BlacknetGeoUpdater(MASTER_CONFIG_FILE)
     bnu.update()
 
 
-def runtests_scrubber():
+def runtests_scrubber() -> None:
+    """Runs the database scrubber."""
     bns = BlacknetScrubber(MASTER_CONFIG_FILE)
     bns.verbosity = 2
     bns.do_fix = True
 
     bns.check_attackers()
-    for table in ['attacker', 'session']:
+    for table in ["attacker", "session"]:
         bns.check_attempts_count(table)
         bns.check_attempts_dates(table)
     bns.check_geolocations()
@@ -85,18 +76,19 @@ def runtests_scrubber():
     bns.generate_map_data()
 
 
-def runtests_checker():
-    with open(SCRUBBER_STATS_FILE, 'r') as f:
+def runtests_checker() -> bool:
+    """Check that stat file is consistent."""
+    with open(SCRUBBER_STATS_FILE) as f:
         d = json.load(f)
-        d = d['data'][0]
+        d = d["data"][0]
         print(d)
 
         return d[0] > 10
 
 
-def runtests_ssh():
-    """ This test launches both servers and run a few login/passwd attempts """
-    servers = []
+def runtests_ssh() -> None:
+    """Runs both servers and run a few login/passwd attempts."""
+    servers = []  # type: list[BlacknetServer]
     threads = []
 
     # Create master server instance
@@ -114,10 +106,10 @@ def runtests_ssh():
         s.reload()
 
     # Prepare to serve requests in separate threads
-    t = Thread(target = runtests_main_serve, args = (bn_main,))
+    t = Thread(target=runtests_main_serve, args=(bn_main,))
     threads.append(t)
 
-    t = Thread(target = runtests_ssh_serve, args = (bn_ssh,))
+    t = Thread(target=runtests_ssh_serve, args=(bn_ssh,))
     threads.append(t)
 
     for t in threads:
@@ -135,7 +127,12 @@ def runtests_ssh():
     print("[+] Closed servers")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # Log paramiko warnings to stdout.
+    logger = logging.getLogger("paramiko")
+    logger.setLevel(logging.WARNING)
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+
     # Update geolocation database with minimal sample
     runtests_update()
 
