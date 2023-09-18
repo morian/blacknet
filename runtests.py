@@ -10,6 +10,7 @@ from threading import Thread
 
 import paramiko
 
+import blacknet.console  # noqa: F401
 from blacknet.master import BlacknetMasterServer
 from blacknet.scrubber import BlacknetScrubber
 from blacknet.sensor import BlacknetSensor

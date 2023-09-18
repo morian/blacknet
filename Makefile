@@ -41,18 +41,8 @@ lint:
 mypy:
 	mypy $(sources)
 
-.PHONY: test
-test:
-	# pytest --cov=blacknet
-	@echo "Not implemented"
-
-.PHONY: testcov
-testcov: test
-	@echo "building coverage html"
-	@coverage html
-
 .PHONY: all
-all: lint mypy testcov
+all: lint mypy
 
 .PHONY: clean
 clean:
