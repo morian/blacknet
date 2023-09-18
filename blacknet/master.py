@@ -347,7 +347,7 @@ class BlacknetServerThread(BlacknetThread):
 
         return ses_id
 
-    def __add_ssh_attempt(self, data: dict[str, Any], atk_id: int, ses_id: int) -> None:
+    def __add_ssh_attempt(self, data: dict[str, Any], atk_id: int, ses_id: int) -> int:
         cursor = self.cursor
         # This happen while registering a pubkey authentication
         password = data["passwd"] if "passwd" in data else None
@@ -360,7 +360,7 @@ class BlacknetServerThread(BlacknetThread):
             data["time"],
             data["version"],
         )
-        cursor.insert_attempt(args)
+        return cursor.insert_attempt(args)
 
     def __add_ssh_pubkey(self, data: dict[str, Any], att_id: int) -> int:
         cursor = self.cursor
