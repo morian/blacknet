@@ -41,7 +41,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
 
     def __del__(self) -> None:
         """Remove temporary directories upon deletion."""
-        if not self.test_mode:
+        if not self.test_mode:  # pragma: no cover
             dirname = self.__dirname
         else:
             # That's the ZipDir (extracted)
@@ -57,7 +57,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
         if self.__test_mode is None:
             if self.has_config("test_mode"):
                 self.__test_mode = bool(self.get_config("test_mode"))
-            else:
+            else:  # pragma: no cover
                 self.__test_mode = False
         return self.__test_mode
 
@@ -162,7 +162,7 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
         self.csv_to_database()
 
         self.log("[+] Update Complete")
-        if not self.test_mode:
+        if not self.test_mode:  # pragma: no cover
             self.log(
                 '[!] We *STRONGLY* suggest running '
                 '"blacknet-scrubber --full-check --fix" to update gelocation positions.'

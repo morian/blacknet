@@ -1,6 +1,6 @@
 black==23.9.1
 isort==5.12.0
 mypy==1.5.1
-ruff==0.0.288
+ruff==0.0.290
 types-paramiko==3.3.0.0
 types-PyMySQL==1.1.0.1

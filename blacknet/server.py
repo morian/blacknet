@@ -11,7 +11,6 @@ from typing import Callable, Optional, Union
 
 from .common import (
     BLACKNET_LOG_CRITICAL,
-    BLACKNET_LOG_DEBUG,
     BLACKNET_LOG_DEFAULT,
     BLACKNET_LOG_ERROR,
     BLACKNET_LOG_INFO,
@@ -123,7 +122,7 @@ class BlacknetServer(BlacknetConfigurationInterface):
             self._logger.write(message, level)
 
     def log_critical(self, message: str) -> None:
-        """Write a critical message to the logger."""
+        """Write a critical error message to the logger."""
         self.log(message, BLACKNET_LOG_CRITICAL)
 
     def log_error(self, message: str) -> None:
@@ -133,10 +132,6 @@ class BlacknetServer(BlacknetConfigurationInterface):
     def log_info(self, message: str) -> None:
         """Write an informational message to the logger."""
         self.log(message, BLACKNET_LOG_INFO)
-
-    def log_debug(self, message: str) -> None:
-        """Write a debug message to the logger."""
-        self.log(message, BLACKNET_LOG_DEBUG)
 
     def reload(self) -> None:
         """Reload instance configuration."""

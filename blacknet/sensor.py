@@ -14,7 +14,6 @@ from .client import BlacknetClient
 from .common import (
     BLACKNET_LOG_DEBUG,
     BLACKNET_LOG_DEFAULT,
-    BLACKNET_LOG_ERROR,
     BLACKNET_LOG_INFO,
     BLACKNET_PING_INTERVAL,
     BLACKNET_SSH_AUTH_RETRIES,
@@ -235,10 +234,6 @@ class BlacknetSensorThread(BlacknetThread):
         if self.__bns._logger:
             peername = "%s" % (self.__peer_ip)
             self.__bns._logger.write(f"{peername}: {message}", level)
-
-    def log_error(self, message: str) -> None:
-        """Write an error message to the logger."""
-        self.log(message, BLACKNET_LOG_ERROR)
 
     def log_info(self, message: str) -> None:
         """Write an informational message to the logger."""

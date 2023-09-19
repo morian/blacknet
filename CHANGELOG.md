@@ -1,6 +1,6 @@
 # Blacknet changelog
 
-## [2.1.0] - UNRELEASED
+## [2.1.0] - 2023-09-19
 - SQL: add a default value for notes on attackers
 - Drop compability with Python2, ensure compatibility up to Python3.11
 - Upgrade the build system to use `pyproject.toml` with setuptools
@@ -23,7 +23,7 @@
 - Fix log verbosity on failed connections
 - Add systemd example service scripts
 - Fix updater script for python3
-- Harden scrubber for `corrupted` databases
+- Harden scrubber for "corrupted" databases
 
 ## [2.0.6] - 2017-06-07
 - Work around hung threads
