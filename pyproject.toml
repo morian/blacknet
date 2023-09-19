@@ -11,7 +11,7 @@ authors = [
 description = 'Multi-head SSH honeypot system'
 readme = 'README.rst'
 classifiers = [
-	'OSI Approved :: MIT License',
+	'License :: OSI Approved :: MIT License',
 	'Operating System :: POSIX :: Linux',
 	'Programming Language :: Python',
 	'Programming Language :: Python :: 3',
