@@ -8,7 +8,7 @@ install-linting:
 .PHONY: install-blacknet
 install-blacknet:
 	pip install -U wheel pip build
-	pip install -e '.[dotenv]'
+	pip install -e .
 
 .PHONY: install-devel
 install-devel:
