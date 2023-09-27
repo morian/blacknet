@@ -42,14 +42,28 @@ blacknet-sensor = 'blacknet.console:run_sensor'
 blacknet-updater = 'blacknet.console:run_updater'
 
 [tool.setuptools.package-data]
-blacknet = [
-	'py.typed',
-]
+blacknet = ['py.typed']
 
 [tool.ruff]
-select = ['E', 'F', 'Q', 'W']
-extend-select = ['A', 'B', 'C', 'D', 'N', 'PIE', 'RET', 'UP']
-extend-ignore = [
+select = [
+	'A',     # flake8-builtins
+	'ASYNC', # flake8-async
+	'B',     # flake8-bugbear
+	'C4',    # flake8-comprehensions
+	'D',     # pydocstyle
+	'E',     # pycodestyle errors
+	'F',     # Pyflakes
+	'N',     # pep8-naming
+	'PIE',   # flake8-pie
+	'PT',    # flake8-pytest-style
+	'Q',     # flake8-quotes
+	'RET',   # flake8-return
+	'RUF',   # Ruff-specific rules
+	'SLF',   # flake8-self
+	'UP',    # pyupgrade
+	'W',     # pycodestyle warnings
+]
+ignore = [
 	'A003',  # Class attribute is shadowing a python builtin
 	'D100',  # Missing docstring in public module
 	'D104',  # Missing docstring in public package
@@ -116,7 +130,5 @@ disallow_untyped_calls = true
 disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = [
-	'msgpack',
-]
+module = ['msgpack']
 ignore_missing_imports = true

@@ -231,9 +231,9 @@ class BlacknetSensorThread(BlacknetThread):
 
     def log(self, message: str, level: int = BLACKNET_LOG_DEFAULT) -> None:
         """Write something to the attached logger."""
-        if self.__bns._logger:
+        if self.__bns.logger:
             peername = "%s" % (self.__peer_ip)
-            self.__bns._logger.write(f"{peername}: {message}", level)
+            self.__bns.logger.write(f"{peername}: {message}", level)
 
     def log_info(self, message: str) -> None:
         """Write an informational message to the logger."""
