@@ -16,7 +16,7 @@ variables:
 
 
 python3-package:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.11-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: build
   cache:
     <<: *pip_cache
@@ -29,7 +29,7 @@ python3-package:
       - dist/
 
 python3-linter:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.11-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: tests
   cache:
     <<: *pip_cache
@@ -39,11 +39,18 @@ python3-linter:
     - source venv/bin/activate
     - make install-linting
   script:
-    - make lint
+    - ruff check --exit-zero --output-format=gitlab -o gl-code-quality-report.json
+    - ruff format --check --diff
+    - ruff check
+  artifacts:
+    expire_in: 7 days
+    reports:
+      codequality: gl-code-quality-report.json
+    when: always
   allow_failure: true
 
 python3-mypy:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.11-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: tests
   cache:
     <<: *pip_cache
@@ -54,10 +61,15 @@ python3-mypy:
     - make install-blacknet
     - make install-linting
   script:
-    - make mypy
+    - mypy --junit-xml gl-typing-mypy-report.xml
+  artifacts:
+    reports:
+      junit: gl-typing-mypy-report.xml
+    when: always
+  allow_failure: true
 
 python3-tests:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.11-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: tests
   needs: []
   variables:
@@ -90,10 +102,11 @@ python3-tests:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+    when: always
   allow_failure: true
 
 python3-publish:
-  image: ${CI_REGISTRY}/dockers/ci/python-build:3.11-alpine
+  image: ${CI_REGISTRY}/dockers/ci/python-build:3.12-alpine
   stage: publish
   variables:
     TWINE_REPOSITORY_URL: ${CI_SERVER_URL}/api/v4/projects/${CI_PROJECT_ID}/packages/pypi

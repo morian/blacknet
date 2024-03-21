@@ -52,7 +52,7 @@ source = ['blacknet/']
 [tool.coverage.report]
 precision = 2
 ignore_errors = true
-include = ['bkacknet/*']
+include = ['blacknet/*']
 exclude_lines = [
 	'pragma: no cover',
 	'raise NotImplementedError',
@@ -106,13 +106,11 @@ select = [
 	'W',      # pycodestyle warnings
 ]
 ignore = [
-	# 'A003',  # Class attribute is shadowing a python builtin
 	'COM812', # missing-trailing-comma
 	'D100',  # Missing docstring in public module
 	'D104',  # Missing docstring in public package
 	'D203',  # 1 blank line required before class docstring
 	'D213',  # Multi-line docstring summary should start at the second line
-	# 'D401',  # First line of docstring should be in imperative mood
 ]
 
 [tool.mypy]
