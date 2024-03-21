@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import os
 import socket
 import time
 from binascii import hexlify
 from contextlib import suppress
 from threading import Event, Lock
-from typing import Any, Optional
+from typing import Any
 
 import paramiko
 from paramiko import RSAKey
@@ -31,8 +33,8 @@ class BlacknetSSHSession(paramiko.ServerInterface):
     def __init__(self, transport: paramiko.Transport, blacknet: BlacknetClient) -> None:
         """Handle a new SSH attack session."""
         self.__transport = transport
-        self.__client_version = None  # type: Optional[str]
-        self.__peer_name = None  # type: Optional[str]
+        self.__client_version = None  # type: str | None
+        self.__peer_name = None  # type: str | None
         self.__allowed_auths = ["publickey", "password"]
         self.auth_failed_count = 0
         # This needs to be a user-configured value at some point.
@@ -55,7 +57,7 @@ class BlacknetSSHSession(paramiko.ServerInterface):
         return self.__client_version
 
     def get_allowed_auths(self, username: str) -> str:
-        """Allowed authentication methods."""
+        """Provide allowed authentication methods."""
         return ",".join(self.__allowed_auths)
 
     def __auth_common_obj(self, username: str) -> dict[str, Any]:
@@ -113,13 +115,13 @@ class BlacknetSensor(BlacknetServer):
     # default listening interface when no config is found.
     _default_listen = BLACKNET_SSH_DEFAULT_LISTEN
 
-    def __init__(self, cfg_file: Optional[str] = None) -> None:
+    def __init__(self, cfg_file: str | None = None) -> None:
         """Create a new SSH sensor."""
         super().__init__("honeypot", cfg_file)
-        self.__ssh_banner = None  # type: Optional[str]
+        self.__ssh_banner = None  # type: str | None
 
-        self.ssh_host_key = None  # type: Optional[RSAKey]
-        self.ssh_host_hash = None  # type: Optional[str]
+        self.ssh_host_key = None  # type: RSAKey | None
+        self.ssh_host_hash = None  # type: str | None
         self.__ssh_private_key_check()
 
         self.blacknet = BlacknetClient(self.config, self._logger)
@@ -200,7 +202,7 @@ class BlacknetSensorThread(BlacknetThread):
         peername = client.getpeername()
         self.__peer_ip = peername[0] if peername else "local"
         self.__client = client
-        self.__transport = None  # type: Optional[paramiko.Transport]
+        self.__transport = None  # type: paramiko.Transport | None
         self.__auth_retries = 0
 
     def __del__(self) -> None:

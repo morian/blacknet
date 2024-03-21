@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 from datetime import datetime
 from io import TextIOWrapper  # noqa: F401
 from threading import Lock
-from typing import Optional
 
 from .common import BLACKNET_LOG_DEFAULT, BLACKNET_LOG_INFO
 from .config import BlacknetConfig, BlacknetConfigurationInterface
@@ -15,9 +16,9 @@ class BlacknetLogger(BlacknetConfigurationInterface):
         super().__init__(config, role)
 
         self.__write_lock = Lock()
-        self.__handle = None  # type: Optional[TextIOWrapper]
-        self.__logpath = None  # type: Optional[str]
-        self.__loglvl = None  # type: Optional[int]
+        self.__handle = None  # type: TextIOWrapper | None
+        self.__logpath = None  # type: str | None
+        self.__loglvl = None  # type: int | None
         self.open()
 
     def __del__(self) -> None:
@@ -41,11 +42,11 @@ class BlacknetLogger(BlacknetConfigurationInterface):
                 self.__loglvl = BLACKNET_LOG_DEFAULT
         return self.__loglvl
 
-    def open(self, logpath: Optional[str] = None) -> None:
+    def open(self, logpath: str | None = None) -> None:
         """Open a new log file."""
         if not logpath:
             logpath = self.logpath
-        self.__handle = open(logpath, "a")
+        self.__handle = open(logpath, "a")  # noqa: SIM115
 
     def close(self) -> None:
         """Close the current log handle."""

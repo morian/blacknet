@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 import socket
 import struct
 from contextlib import suppress
-from typing import Union
 
 
 # Blacknet Message Types between server and client.
@@ -52,7 +53,7 @@ BLACKNET_SSL_DEFAULT_LISTEN = f"{BLACKNET_SSL_DEFAULT_ADDRESS}:{BLACKNET_SSL_DEF
 BLACKNET_DEFAULT_SESSION_INTERVAL = 3600
 
 # Default listening / connection interface for SSH server (blacknet client)
-BLACKNET_SSH_DEFAULT_ADDRESS = "0.0.0.0"
+BLACKNET_SSH_DEFAULT_ADDRESS = "0.0.0.0"  # noqa: S104
 BLACKNET_SSH_DEFAULT_PORT = 2200
 BLACKNET_SSH_DEFAULT_LISTEN = f"{BLACKNET_SSH_DEFAULT_ADDRESS}:{BLACKNET_SSH_DEFAULT_PORT}"
 BLACKNET_SSH_DEFAULT_BANNER = "SSH-2.0-OpenSSH_8.4p1 Debian-5+deb11u1"
@@ -90,7 +91,7 @@ BLACKNET_CIPHERS = [
 ]
 
 
-def blacknet_ensure_unicode(message: Union[str, bytes]) -> str:
+def blacknet_ensure_unicode(message: str | bytes) -> str:
     """Ensure a unicode string as output."""
 
     def blacknet_decode(message: bytes) -> str:

@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import select
 import socket
 import sys
 from contextlib import suppress
 from threading import Lock, RLock
-from typing import Any, Optional, Union
+from typing import Any
 
 from msgpack import Packer, Unpacker
 
@@ -31,16 +33,16 @@ class BlacknetClient(BlacknetSSLInterface):
     def __init__(
         self,
         config: BlacknetConfig,
-        logger: Optional[BlacknetLogger] = None,
+        logger: BlacknetLogger | None = None,
     ) -> None:
         """Initialize a new client for blacknet."""
         super().__init__(config, "honeypot")
         self.__logger = logger
-        self.__server_hostname = None  # type: Optional[str]
-        self.__server_address = None  # type: Optional[Union[str, tuple[str, int]]]
-        self.__server_socket = None  # type: Optional[socket.socket]
+        self.__server_hostname = None  # type: str | None
+        self.__server_address = None  # type: str | tuple[str, int] | None
+        self.__server_socket = None  # type: socket.socket | None
         self.__server_error = False
-        self.__client_name = None  # type: Optional[str]
+        self.__client_name = None  # type: str | None
         self.__connect_lock = RLock()
         self.__send_lock = Lock()
         self.__packer = Packer()
@@ -71,7 +73,7 @@ class BlacknetClient(BlacknetSSLInterface):
         self.log(message, BLACKNET_LOG_DEBUG)
 
     @property
-    def server_hostname(self) -> Optional[str]:
+    def server_hostname(self) -> str | None:
         """Hostname of the blacknet server."""
         if not self.__server_hostname:
             self.__server_hostname = self.ssl_config[2]
@@ -85,13 +87,13 @@ class BlacknetClient(BlacknetSSLInterface):
         return self._server_sockfile
 
     @property
-    def server_address(self) -> Union[str, tuple[str, int]]:
+    def server_address(self) -> str | tuple[str, int]:
         """Get the blacknet server address."""
         if self.__server_address is None:
             self.__server_address = self.__get_server_address()
         return self.__server_address
 
-    def __get_server_address(self) -> Union[str, tuple[str, int]]:
+    def __get_server_address(self) -> str | tuple[str, int]:
         """Retrieve the blacknet server address and port."""
         if self.has_config("server"):
             server = self.get_config("server").strip()
@@ -112,7 +114,7 @@ class BlacknetClient(BlacknetSSLInterface):
         return (address, port)
 
     @property
-    def client_name(self) -> Optional[str]:
+    def client_name(self) -> str | None:
         """Get the name of the current blacknet client."""
         if not self.__client_name and self.has_config("name"):
             self.__client_name = self.get_config("name")

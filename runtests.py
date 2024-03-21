@@ -60,7 +60,7 @@ def runtests_update() -> None:
 
 
 def runtests_scrubber() -> None:
-    """Runs the database scrubber."""
+    """Run the database scrubber."""
     bns = BlacknetScrubber(MASTER_CONFIG_FILE)
     bns.verbosity = 2
     bns.do_fix = True
@@ -88,7 +88,7 @@ def runtests_checker() -> bool:
 
 
 def runtests_ssh() -> None:
-    """Runs both servers and run a few login/passwd attempts."""
+    """Run both servers and run a few login/passwd attempts."""
     servers = []  # type: list[BlacknetServer]
     threads = []
 

@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import ssl
-from typing import Optional
 
 from .common import BLACKNET_CIPHERS
 from .config import BlacknetConfig, BlacknetConfigurationInterface
@@ -12,11 +13,11 @@ class BlacknetSSLInterface(BlacknetConfigurationInterface):
         """Initialize a new SSL interface."""
         super().__init__(config, role)
         self._server_sockfile = False
-        self.__ssl_config = None  # type: Optional[tuple[str, str, Optional[str]]]
-        self.__ssl_context = None  # type: Optional[ssl.SSLContext]
+        self.__ssl_config = None  # type: tuple[str, str, str | None] | None
+        self.__ssl_context = None  # type: ssl.SSLContext | None
 
     @property
-    def ssl_config(self) -> tuple[str, str, Optional[str]]:
+    def ssl_config(self) -> tuple[str, str, str | None]:
         """Get current SSL configuration."""
         if not self.__ssl_config:
             cert = self.get_config("cert")

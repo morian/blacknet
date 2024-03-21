@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 from optparse import OptionParser
 from signal import SIGHUP, SIGINT, SIGTERM, getsignal, signal
 from types import FrameType
-from typing import Optional
 
 from .. import BlacknetMasterServer
 
@@ -10,13 +11,13 @@ running = True
 update = False
 
 
-def blacknet_quit(signal: int, frame: Optional[FrameType]) -> None:
+def blacknet_quit(signal: int, frame: FrameType | None) -> None:
     """Exit this program in a clean way."""
     global running
     running = False
 
 
-def blacknet_reload(signal: int, frame: Optional[FrameType]) -> None:
+def blacknet_reload(signal: int, frame: FrameType | None) -> None:
     """Reload server configuration in a clean way."""
     global update
     update = True

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import socket
+from contextlib import suppress
 from ssl import SSLSocket
 from threading import Lock
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from msgpack import Packer, Unpacker
 from pymysql import MySQLError
@@ -29,13 +32,13 @@ from .sslif import BlacknetSSLInterface
 class BlacknetMasterServer(BlacknetServer, BlacknetSSLInterface):
     """Main blackNet server class."""
 
-    def __init__(self, cfg_file: Optional[str] = None) -> None:
+    def __init__(self, cfg_file: str | None = None) -> None:
         """Instanciate a new blacknet server."""
         BlacknetServer.__init__(self, "server", cfg_file)
         BlacknetSSLInterface.__init__(self, self.config, "server")
 
-        self.__test_mode = None  # type: Optional[bool]
-        self.__session_interval = None  # type: Optional[int]
+        self.__test_mode = None  # type: bool | None
+        self.__session_interval = None  # type: int | None
         self.blacklist = BlacknetBlacklist(self.config)
 
     @property
@@ -99,9 +102,9 @@ class BlacknetServerThread(BlacknetThread):
 
         self.database = BlacknetDatabase(bns.config, bns.logger)
         self.__blacklist = bns.blacklist
-        self.__client = None  # type: Optional[socket.socket]
+        self.__client = None  # type: socket.socket | None
         self.__connect_lock = Lock()
-        self.__cursor = None  # type: Optional[BlacknetDatabaseCursor]
+        self.__cursor = None  # type: BlacknetDatabaseCursor | None
         self.__logger = bns.logger
         self.__mysql_error = 0
         self.__session_interval = bns.session_interval
@@ -136,10 +139,8 @@ class BlacknetServerThread(BlacknetThread):
         self.__connect_lock.acquire()
         if self.__client:
             self.log_info("stopping session")
-            try:
+            with suppress(OSError):
                 self.__client.shutdown(socket.SHUT_RDWR)
-            except OSError:
-                pass
             self.__client.close()
             self.__client = None
         self.__connect_lock.release()
@@ -158,7 +159,7 @@ class BlacknetServerThread(BlacknetThread):
         return name
 
     def handle_sensor(self, client: socket.socket) -> None:
-        """Main loop used to handle what is transmitted."""
+        """Run the sensor main handler loop."""
         running = True
 
         while running:
@@ -222,8 +223,8 @@ class BlacknetServerThread(BlacknetThread):
         self.log(message, BLACKNET_LOG_DEBUG)
 
     def __mysql_retry(self, function: Callable[..., Any], *args: Any) -> Any:
-        """Wrapper function used to retry queries on MySQL error."""
-        saved_exception = None  # type: Optional[BaseException]
+        """Wrap a function to retry on MySQL error."""
+        saved_exception = None  # type: BaseException | None
 
         for _retry in range(BLACKNET_DATABASE_RETRIES):
             try:
@@ -350,7 +351,7 @@ class BlacknetServerThread(BlacknetThread):
     def __add_ssh_attempt(self, data: dict[str, Any], atk_id: int, ses_id: int) -> int:
         cursor = self.cursor
         # This happen while registering a pubkey authentication
-        password = data["passwd"] if "passwd" in data else None
+        password = data.get("passwd")
         args = (
             atk_id,
             ses_id,

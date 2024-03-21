@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import codecs
 import csv
 import os
@@ -7,7 +9,6 @@ import tempfile
 import zipfile
 from codecs import StreamReaderWriter
 from collections.abc import Iterator
-from typing import Optional
 from urllib.request import urlopen
 
 from .config import BlacknetConfig, BlacknetConfigurationInterface
@@ -28,11 +29,11 @@ def utf8_ensure(csv_file: StreamReaderWriter) -> Iterator[str]:
 class BlacknetGeoUpdater(BlacknetConfigurationInterface):
     """Blacknet geolocation database updater."""
 
-    def __init__(self, cfg_file: Optional[str] = None):
+    def __init__(self, cfg_file: str | None = None):
         """Load configuration file and database parameters."""
-        self.__dirname = None  # type: Optional[str]
+        self.__dirname = None  # type: str | None
         self.__filepath = {}  # type: dict[str, str]
-        self.__test_mode = None  # type: Optional[bool]
+        self.__test_mode = None  # type: bool | None
 
         config = BlacknetConfig()
         config.load(cfg_file)
@@ -79,8 +80,8 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
         """Fetch the zip file on the internets."""
         if not self.test_mode:
             zip_file = os.path.join(self.dirname, "geolitecity.zip")
-            zipf = open(zip_file, "wb")
-            res = urlopen(GEOLITE_CSV_URL)
+            zipf = open(zip_file, "wb")  # noqa: SIM115
+            res = urlopen(GEOLITE_CSV_URL)  # noqa: S310
 
             content = res.read()
             zipf.write(content)
@@ -164,6 +165,6 @@ class BlacknetGeoUpdater(BlacknetConfigurationInterface):
         self.log("[+] Update Complete")
         if not self.test_mode:  # pragma: no cover
             self.log(
-                '[!] We *STRONGLY* suggest running '
+                "[!] We *STRONGLY* suggest running "
                 '"blacknet-scrubber --full-check --fix" to update gelocation positions.'
             )

@@ -1,5 +1,4 @@
 .DEFAULT_GOAL := all
-sources = blacknet runtests.py
 
 .PHONY: install-linting
 install-linting:
@@ -7,7 +6,7 @@ install-linting:
 
 .PHONY: install-blacknet
 install-blacknet:
-	pip install -U wheel pip build
+	pip install -U pip build wheel
 	pip install -e .
 
 .PHONY: install-devel
@@ -28,18 +27,17 @@ build:
 
 .PHONY: format
 format:
-	isort $(sources)
-	black $(sources)
+	ruff check --select=I --fix-only
+	ruff format
 
 .PHONY: lint
 lint:
-	ruff check $(sources)
-	isort $(sources) --check-only --df
-	black $(sources) --check --diff
+	ruff check
+	ruff format --check --diff
 
 .PHONY: mypy
 mypy:
-	mypy $(sources)
+	mypy
 
 .PHONY: all
 all: lint mypy
@@ -50,8 +48,8 @@ clean:
 	$(RM) .coverage.*
 	$(RM) -r *.egg-info
 	$(RM) -r .mypy_cache
-	$(RM) -r .ruff_cache
 	$(RM) -r build
 	$(RM) -r dist
 	$(RM) -r htmlcov
 	find blacknet -name '*.py[cod]' -delete
+	ruff clean

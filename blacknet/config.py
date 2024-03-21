@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 import re
 from configparser import ConfigParser
 from contextlib import suppress
-from typing import Optional
 
 from .common import BLACKNET_BLACKLIST_DIRS, BLACKNET_CONFIG_DIRS
 
@@ -13,14 +14,14 @@ class BlacknetConfig(ConfigParser):
     def __init__(self) -> None:
         """Create a new configuration for blacknet."""
         super().__init__()
-        self.__confpath = None  # type: Optional[str]
+        self.__confpath = None  # type: str | None
 
     def reload(self) -> None:
         """Reload the same configuration file."""
         if self.__confpath:
             self.read(self.__confpath)
 
-    def load(self, cfg_file: Optional[str] = None) -> None:
+    def load(self, cfg_file: str | None = None) -> None:
         """Find and load configuration file from standard locations."""
         if cfg_file is None:
             for f in BLACKNET_CONFIG_DIRS:
@@ -69,7 +70,7 @@ class BlacknetBlacklist(BlacknetConfigurationInterface):
         """Create a blacklist configuration class."""
         super().__init__(config, "server")
 
-        self.__extra_file = None  # type: Optional[str]
+        self.__extra_file = None  # type: str | None
         self.__blacklist = {}  # type: dict[str, list[str]]
         self._load()
 
@@ -87,9 +88,8 @@ class BlacknetBlacklist(BlacknetConfigurationInterface):
                     if res is not None:
                         data = res.groups()
                         username = data[0].rstrip("\n")
-                        if username:
-                            if username not in self.__blacklist[section]:
-                                self.__blacklist[section].append(username)
+                        if username and username not in self.__blacklist[section]:
+                            self.__blacklist[section].append(username)
 
     def read(self, files: list[str]) -> None:
         """Load the configuration in the global variables."""
@@ -114,7 +114,7 @@ class BlacknetBlacklist(BlacknetConfigurationInterface):
         self.read(files)
 
     @property
-    def extra_file(self) -> Optional[str]:
+    def extra_file(self) -> str | None:
         """List of extra blacklist files."""
         if not self.__extra_file and self.has_config("blacklist_file"):
             self.__extra_file = self.get_config("blacklist_file")

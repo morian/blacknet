@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import os
 import sys
 import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 from urllib.request import urlretrieve
 
 from .common import blacknet_gethostbyaddr, blacknet_int_to_ip
@@ -15,7 +17,7 @@ WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 class BlacknetScrubber(BlacknetConfigurationInterface):
     """Blacknet database scrubber."""
 
-    def __init__(self, cfg_file: Optional[str] = None) -> None:
+    def __init__(self, cfg_file: str | None = None) -> None:
         """Instanciate a new blacknet scrubber to fix errors."""
         config = BlacknetConfig()
         config.load(cfg_file)
@@ -24,11 +26,11 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         self.__database = BlacknetDatabase(config)
         self.__verbosity = 2
         self.__do_fix = False
-        self.__cache_path = None  # type: Optional[str]
-        self.__alive_delta = None  # type: Optional[int]
-        self.__recent_delta = None  # type: Optional[int]
-        self.__alive_threshold = None  # type: Optional[int]
-        self.__recent_threshold = None  # type: Optional[int]
+        self.__cache_path = None  # type: str | None
+        self.__alive_delta = None  # type: int | None
+        self.__recent_delta = None  # type: int | None
+        self.__alive_threshold = None  # type: int | None
+        self.__recent_threshold = None  # type: int | None
         self.__targets = []  # type: list[tuple[str, int, int]]
 
     def log_error(self, message: str) -> None:
@@ -99,7 +101,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         self.__timed_check(self.__check_attackers, [], "missing attackers")
 
     def __check_attempts_count(self, target: str) -> None:
-        """Checks for inconsistency and auto-repair."""
+        """Check for inconsistency and auto-repair."""
         cursor = self.__database.cursor()
         for t_id, current, computed in cursor.missing_attempts_count(target):
             self.log_action(
@@ -191,7 +193,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         time_start = time.time()
         res = action(filepath)
         time_diff = time.time() - time_start
-        self.log_progress(f"[+] Generated file \'{filepath}\' ({time_diff:.1f}s)")
+        self.log_progress(f"[+] Generated file '{filepath}' ({time_diff:.1f}s)")
         return res
 
     def __json_export(self, filepath: str, data: list[Any]) -> None:
@@ -215,7 +217,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         """Generate the target report."""
         self.__timed_generation(self.__generate_targets, "targets.json")
 
-    def __query_wrapper(self, query: str) -> Optional[list[Any]]:
+    def __query_wrapper(self, query: str) -> list[Any] | None:
         cursor = self.__database.cursor()
         res = cursor.execute(query)
         if res:
@@ -254,21 +256,21 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             "LIMIT 20;"
         )
         queries["stats_user_pass"] = (
-            "SELECT user, password, COUNT(*) "
+            "SELECT user, password, COUNT(*) "  # noqa: S105
             "FROM attempts "
             "GROUP BY user,password "
             "ORDER BY COUNT(*) DESC "
             "LIMIT 20;"
         )
         queries["stats_general"] = (
-            'SELECT (SELECT COUNT(*) FROM attempts), '
-            '(SELECT COUNT(*) FROM attackers), '
-            '(SELECT COUNT(*) FROM sessions), '
-            '(SELECT COUNT(*) FROM attempts WHERE user = password), '
+            "SELECT (SELECT COUNT(*) FROM attempts), "
+            "(SELECT COUNT(*) FROM attackers), "
+            "(SELECT COUNT(*) FROM sessions), "
+            "(SELECT COUNT(*) FROM attempts WHERE user = password), "
             '(SELECT COUNT(*) FROM attempts WHERE user = "root"), '
-            '(SELECT COUNT(DISTINCT user) FROM attempts), '
-            '(SELECT COUNT(DISTINCT password) FROM attempts), '
-            '(SELECT COUNT(DISTINCT user, password) FROM attempts);'
+            "(SELECT COUNT(DISTINCT user) FROM attempts), "
+            "(SELECT COUNT(DISTINCT password) FROM attempts), "
+            "(SELECT COUNT(DISTINCT user, password) FROM attempts);"
         )
         queries["stats_countries"] = (
             "SELECT countries.country, CAST(SUM(n_attempts) AS UNSIGNED) AS c "
@@ -286,35 +288,35 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
 
             # Applying the filter this way is much faster.
             queries[filename] = (
-                'SELECT countries.country, '
-                'CAST(SUM(SES.n_attempts) AS UNSIGNED) AS c '
-                'FROM ( '
-                'SELECT attacker_id, n_attempts '
-                'FROM sessions '
+                "SELECT countries.country, "  # noqa: S608
+                "CAST(SUM(SES.n_attempts) AS UNSIGNED) AS c "
+                "FROM ( "
+                "SELECT attacker_id, n_attempts "
+                "FROM sessions "
                 'WHERE target = "%s" '
-                ') as SES '
-                'JOIN attackers ON SES.attacker_id = attackers.id '
-                'JOIN locations ON attackers.locId = locations.locId '
-                'JOIN countries ON locations.country = countries.code '
-                'GROUP BY countries.code '
-                'ORDER BY c DESC '
-                'LIMIT 10;' % self.__database.escape_string(str_target)
+                ") as SES "
+                "JOIN attackers ON SES.attacker_id = attackers.id "
+                "JOIN locations ON attackers.locId = locations.locId "
+                "JOIN countries ON locations.country = countries.code "
+                "GROUP BY countries.code "
+                "ORDER BY c DESC "
+                "LIMIT 10;" % self.__database.escape_string(str_target)
             )
 
         queries["stats_breakin"] = (
-            'SELECT countries.country, COUNT(*) '
-            'FROM ( '
-            'SELECT DISTINCT attacker_id '
-            'FROM attempts '
-            'WHERE success = 1 '
+            "SELECT countries.country, COUNT(*) "
+            "FROM ( "
+            "SELECT DISTINCT attacker_id "
+            "FROM attempts "
+            "WHERE success = 1 "
             'AND client NOT LIKE "%libssh%" '
-            ') as ATT '
-            'JOIN attackers ON ATT.attacker_id = attackers.id '
-            'JOIN locations ON attackers.locId = locations.locId '
-            'JOIN countries ON locations.country = countries.code '
-            'GROUP BY countries.code '
-            'ORDER BY COUNT(*) DESC '
-            'LIMIT 10;'
+            ") as ATT "
+            "JOIN attackers ON ATT.attacker_id = attackers.id "
+            "JOIN locations ON attackers.locId = locations.locId "
+            "JOIN countries ON locations.country = countries.code "
+            "GROUP BY countries.code "
+            "ORDER BY COUNT(*) DESC "
+            "LIMIT 10;"
         )
 
         for filename in queries:
@@ -361,7 +363,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         data: list[Any],
         name: str,
         time_start: float,
-        label: Optional[list[str]] = None,
+        label: list[str] | None = None,
     ) -> None:
         """Generate bar charts from data."""
         max_val = max(data)
@@ -387,12 +389,12 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
 
         # Get and write the image.
         destination = os.path.join(self.cache_path, "status_%s.png" % name)
-        urlretrieve(url, destination)
+        urlretrieve(url, destination)  # noqa: S310
 
         time_diff = time.time() - time_start
         self.log_progress(f"[+] Bar char {name} generated ({time_diff:0.1f}s)")
 
-    def __generate_minimap(self, target: Optional[str] = None) -> bool:
+    def __generate_minimap(self, target: str | None = None) -> bool:
         """Generate the minimap for virtual machine target."""
         time_start = time.time()
 
@@ -414,16 +416,16 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             )
         else:
             query = (
-                'SELECT CAST(SUM(SES.n_attempts) AS UNSIGNED) as C, country '
-                'FROM ('
-                '  SELECT n_attempts, attacker_id '
-                '  FROM sessions '
+                "SELECT CAST(SUM(SES.n_attempts) AS UNSIGNED) as C, country "  # noqa: S608
+                "FROM ("
+                "  SELECT n_attempts, attacker_id "
+                "  FROM sessions "
                 '  WHERE target = "%s"'
-                ') as SES '
-                'JOIN attackers ON SES.attacker_id  = attackers.id '
-                'JOIN locations ON attackers.locId  = locations.locId '
-                'GROUP BY country '
-                'ORDER BY C DESC;' % self.__database.escape_string(target)
+                ") as SES "
+                "JOIN attackers ON SES.attacker_id  = attackers.id "
+                "JOIN locations ON attackers.locId  = locations.locId "
+                "GROUP BY country "
+                "ORDER BY C DESC;" % self.__database.escape_string(target)
             )
 
         temp_cache = {}
@@ -453,7 +455,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         else:
             destination = os.path.join(self.cache_path, "minimap.png")
 
-        urlretrieve(url, destination)
+        urlretrieve(url, destination)  # noqa: S310
 
         time_diff = time.time() - time_start
         if target:
@@ -468,7 +470,7 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
         for target in [x[0] for x in self.__targets if (x[2] or self.__do_fix)]:
             self.__generate_minimap(target)
 
-    def __generate_map_data(self, target: Optional[str] = None) -> None:
+    def __generate_map_data(self, target: str | None = None) -> None:
         self.__database.cursor()
         suffix = "_%s" % target if target else ""
 
@@ -485,18 +487,18 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             )
         else:
             queries["map_regions" + suffix] = (
-                'SELECT countries.code, '
-                'CAST(SUM(SES.n_attempts) AS UNSIGNED), '
-                'countries.country '
-                'FROM ('
-                '  SELECT n_attempts, attacker_id '
-                '  FROM sessions '
+                "SELECT countries.code, "  # noqa: S608
+                "CAST(SUM(SES.n_attempts) AS UNSIGNED), "
+                "countries.country "
+                "FROM ("
+                "  SELECT n_attempts, attacker_id "
+                "  FROM sessions "
                 '  WHERE target = "%s"'
-                ') as SES '
-                'JOIN attackers ON SES.attacker_id = attackers.id '
-                'JOIN locations ON attackers.locId = locations.locId '
-                'JOIN countries ON locations.country = countries.code '
-                'GROUP BY code;' % self.__database.escape_string(target)
+                ") as SES "
+                "JOIN attackers ON SES.attacker_id = attackers.id "
+                "JOIN locations ON attackers.locId = locations.locId "
+                "JOIN countries ON locations.country = countries.code "
+                "GROUP BY code;" % self.__database.escape_string(target)
             )
 
         if not target:
@@ -511,18 +513,18 @@ class BlacknetScrubber(BlacknetConfigurationInterface):
             )
         else:
             queries["map_markers" + suffix] = (
-                'SELECT latitude, longitude, '
-                'CAST(SUM(SES.n_attempts) AS UNSIGNED) AS C, city '
-                'FROM ('
-                '  SELECT n_attempts, attacker_id '
-                '  FROM sessions '
+                "SELECT latitude, longitude, "  # noqa: S608
+                "CAST(SUM(SES.n_attempts) AS UNSIGNED) AS C, city "
+                "FROM ("
+                "  SELECT n_attempts, attacker_id "
+                "  FROM sessions "
                 '  WHERE target = "%s"'
-                ') as SES '
-                'JOIN attackers ON SES.attacker_id = attackers.id '
-                'JOIN locations ON attackers.locId = locations.locId '
-                'GROUP BY locations.locId '
-                'ORDER BY C DESC '
-                'LIMIT 250;' % self.__database.escape_string(target)
+                ") as SES "
+                "JOIN attackers ON SES.attacker_id = attackers.id "
+                "JOIN locations ON attackers.locId = locations.locId "
+                "GROUP BY locations.locId "
+                "ORDER BY C DESC "
+                "LIMIT 250;" % self.__database.escape_string(target)
             )
 
         for filepath in queries:

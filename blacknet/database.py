@@ -88,7 +88,7 @@ class BlacknetDatabaseCursor:
 
     def update_attempts_count(self, table: str, t_id: int, count: int) -> None:
         """Update the number of attempts for a provided table."""
-        query = "UPDATE `" + table + "s` SET n_attempts = %s WHERE id = %s;"
+        query = f"UPDATE `{table}s` SET n_attempts = %s WHERE id = %s;"  # noqa: S608
         return self.execute(query, [count, t_id])
 
     def update_dates(self, table: str, t_id: int, first_seen: int, last_seen: int) -> None:
@@ -96,8 +96,8 @@ class BlacknetDatabaseCursor:
         lsf = "last_seen" if table == "attacker" else "last_attempt"
         fsf = "first_seen" if table == "attacker" else "first_attempt"
         query = (
-            "UPDATE `" + table + "s` "
-            "SET " + fsf + " = FROM_UNIXTIME(%s), " + lsf + " = FROM_UNIXTIME(%s) "
+            f"UPDATE `{table}s` "  # noqa: S608
+            f"SET {fsf} = FROM_UNIXTIME(%s), {lsf} = FROM_UNIXTIME(%s) "
             "WHERE id = %s;"
         )
         return self.execute(query, [first_seen, last_seen, t_id])
